@@ -1,5 +1,9 @@
+## Importowanie funkcji potrzebnych do analizy
+
 source("functions/observation_split.R")
 source("functions/count_instances.R")
+source("functions/u_remove.R")
+
 
 library(dplyr)
 library(lubridate)
@@ -15,18 +19,19 @@ jablow <- read.csv2("input/jablow_calosc.csv", as.is = TRUE)
 
 jablow$Date_time <- dmy_hms(paste(jablow$Data, jablow$Time))
 
+## Usuwamy dane zawierające oberwacje niepełne (u) - to jeszcze eksploracja
+
+jablow <- u_remove(jablow)
+
 ## Rozbijamy obserwacje z wieloma nietoperzami na pojedyncze obserwacje
 jablow_pociete <- observation_split(jablow)
 rm(jablow)
 
-## Usuwamy dane zawierające oberwacje niepełne (u) - to jeszcze eksploracja
-
-## Jeszcze tej częsci nie ma
 
 
 ## Liczymy zdarzenia w obrębie każdego kodu
 
-characters <-c("a","l","t","r","p","c","d","f","n","e")
+characters <-c("a","l","t","r","p","c","d","f","n","e", "u")
 
 zdarzenia <- count_instances(jablow_pociete, characters)
 
@@ -38,12 +43,16 @@ jablow_zdarzenia <- cbind(jablow_pociete, zdarzenia)
 jablow_zdarzenia <- tbl_df(jablow_zdarzenia)
 
 
+## Zapisuje dane do tabeli zewnętrznej
+
+write.csv(jablow_zdarzenia, "output/jablow_zdarzenia")
+
 
 ## Takie se powiedzmy eksploracje ----
 
 
 # Grupuję po sezonach 
-jablow_zdarzenia<- group_by(jablow_zdarzenia, Season)
+jablow_zdarzenia <- group_by(jablow_zdarzenia, Season)
 
 # Liczę ilość pościgów i ilość zdarzeń, a następniew wyliczam średnią ilośc
 # pościgów na sezon

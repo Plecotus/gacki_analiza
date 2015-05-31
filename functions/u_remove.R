@@ -6,24 +6,24 @@ u_remove <- function(data){
   
   ## Bierzemy wektor zawierający kody przelotów 
   
-  kody <- jablow_zdarzenia$Event_V
+  kody <- data$Event_V
   
   
   
   ## Usuwamy zdarzenia typu "u" z początków i końców kodów
   
-  kody3 <- gsub("^u..","", kody2)
-  kody3 <-  gsub("^u..","", kody3)
-  kody4 <- gsub("u..$", "", kody3)
-  kody5 <- gsub("u.$", "", kody4)
+  kody <- gsub("^u..","", kody)
+  kody <-  gsub("^u..","", kody)
+  kody <- gsub("u..$", "", kody)
+  kody <- gsub("u.$", "", kody)
   
   #Podmianka u.. na /
-  kody6 <- gsub(".u..", "/", kody5)
+  kody <- gsub(".u..", "/", kody)
   
   
-  do_pociecia <- which(regexpr("u", kody)>0)
+  data$Event_V <- kody
 
-  kody2 <-kody[do_pociecia]
+  data
    
    
 }

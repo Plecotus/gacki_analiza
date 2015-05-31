@@ -6,9 +6,11 @@
 tak samo jak poprzednie.
 
 ## Log:
+
 31 maja 
 * gotowa funkcja do rozdzielania mnogich obserwacji
 * gotwa funkcja licząca zdarzenia z kodów
+* gotowa funkcja do usuwania zdarzeń u
 * w pliku analizy dopiero wczytanie danych i wstępne policzenie ewolucji
 
 
