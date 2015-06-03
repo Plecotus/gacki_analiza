@@ -2,8 +2,7 @@
 
 ## Do zrobienia:
 
-* surowe dane do folderu input w pliku csv, tylko mają się nazywać
-tak samo jak poprzednie.
+
 
 
 #Uwagi 
@@ -15,6 +14,8 @@ odpowiadać sumie ilości nietoperzy mniej więcej a jest duży rozjazd, ale mo�
 ## Log:
 
 2 czerwca:
+
+* [Przepiora] zaktualizowany plik "jablow_calosc.csv" - plik zawiera tylko surowe dane
 
 * zmodyfikowana funkcja u_remove - tak, że można kontrolować wstawianie "/" do kodu
 * wrzuciłem swoje dane do folderu wsadowego
