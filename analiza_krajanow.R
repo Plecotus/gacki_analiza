@@ -19,9 +19,15 @@ krajanow <- read.csv2("input/krajanow_calosc.csv", as.is = TRUE)
 
 krajanow$Date_time <- dmy_hms(paste(krajanow$Data, krajanow$Time))
 
+
+# Ustalamy porę dnia (wieczór/rano)
+krajanow$godzina <- hour(krajanow$Date_time)
+krajanow$pora_dnia <- ifelse(krajanow$godzina>=12, "wieczor", "rano")
+
+
 ## Usuwamy dane zawierające oberwacje niepełne (u) - to jeszcze eksploracja
 
-krajanow <- u_remove(krajanow)
+krajanow <- u_remove(krajanow, slash = F)
 
 ## Rozbijamy obserwacje z wieloma nietoperzami na pojedyncze obserwacje
 krajanow_pociete <- observation_split(krajanow)
@@ -45,16 +51,23 @@ krajanow_zdarzenia <- tbl_df(krajanow_zdarzenia)
 
 ## Zapisuje dane do tabeli zewnętrznej
 
-write.csv(krajanow_zdarzenia, "output/krajanow_zdarzenia")
+write.csv(krajanow_zdarzenia, "output/krajanow_zdarzenia.csv")
 
 
 ## Takie se powiedzmy eksploracje ----
 
-
 # Grupuję po sezonach 
-krajanow_zdarzenia <- group_by(krajanow_zdarzenia, Season)
+krajanow_zdarzenia <- group_by(krajanow_zdarzenia, Season, Night, pora_dnia)
 
 # Liczę ilość pościgów i ilość zdarzeń, a następniew wyliczam średnią ilośc
 # pościgów na sezon
-summary_krajanow <- summarise(krajanow_zdarzenia, sum_p =sum(p, na.rm = TRUE), n = length(p))
+
+summary_krajanow <- summarise(krajanow_zdarzenia,
+                            sum_p =sum(as.numeric(as.character(p)), na.rm = TRUE),
+                            n = length(p))
+
 summary_krajanow <- mutate(summary_krajanow, mean_p = sum_p/n)    
+
+boxplot(mean_p ~ pora_dnia, data = summary_krajanow)
+g <- ggplot(summary_krajanow, aes(x = pora_dnia, y = mean_p))
+g + geom_boxplot() + facet_grid(. ~ Season)
