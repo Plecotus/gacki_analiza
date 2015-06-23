@@ -15,6 +15,11 @@ library(lubridate)
 
 jablow <- read.csv2("input/jablow_calosc.csv", as.is = TRUE)
 
+## Usuwamy niepotrzebne kolumny, ktore załadowały się z pliku 'csv', 
+# czyli kolumny od ósmej w górę
+
+jablow <- jablow[, 1:8]
+
 ## Zmieniam daty na format R - patrz lubridate
 
 jablow$Date_time <- dmy_hms(paste(jablow$Data, jablow$Time))
@@ -32,7 +37,7 @@ rm(jablow)
 
 ## Liczymy zdarzenia w obrębie każdego kodu
 
-characters <-c("a","l","t","r","p","c","d","f","n","e", "u")
+characters <-c("a","l","t","r","p","c","d","f","n","e", "u", "g", "h", "i", "k","o", "w", "v")
 
 zdarzenia <- count_instances(jablow_pociete, characters)
 

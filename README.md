@@ -2,8 +2,7 @@
 
 ## Do zrobienia:
 
-* surowe dane do folderu input w pliku csv, tylko mają się nazywać
-tak samo jak poprzednie.
+
 
 
 #Uwagi 
@@ -14,7 +13,15 @@ odpowiadać sumie ilości nietoperzy mniej więcej a jest duży rozjazd, ale mo�
 
 ## Log:
 
+3 czerwca: 
+
+* uzupełnione kody zdarzeń w skrypcie "analiza_jablow"
+* dodalam linie kodu "jablow <- jablow[, 1:8]" bo z tabeli "jablow_calosc.csv" importowalo sie ponad 1000 kolumn
+* wyeksportowalam tabele zewnetrzna "jablow_zdarzenia" z uzupełnionymi kodami ewolucji
+
 2 czerwca:
+
+* [Przepiora] zaktualizowany plik "jablow_calosc.csv" - plik zawiera tylko surowe dane
 
 * zmodyfikowana funkcja u_remove - tak, że można kontrolować wstawianie "/" do kodu
 * wrzuciłem swoje dane do folderu wsadowego
