@@ -13,8 +13,8 @@ count_instances <- function(data, characters){
   for(char in characters){
     
     assign(char, NULL)
-    for( i in kody){
-      indeksy_wystapien <- gregexpr(char, i)[[1]]
+    for( kod in kody){
+      indeksy_wystapien <- gregexpr(char, kod)[[1]]
       
       assign(char, append(get(char), ifelse(indeksy_wystapien[1]==-1,
                                             NA, length(indeksy_wystapien))))
