@@ -7,11 +7,16 @@
 
 #Uwagi 
 
-Coś mi się nie zgadza w wynikach bo w zasadzie ilośc obserwacji po pocięciu powinna 
-odpowiadać sumie ilości nietoperzy mniej więcej a jest duży rozjazd, ale może źle myślę
 
 
 ## Log:
+
+23 czerwca:
+
+* wrzucilam "jablow_calosc.csv" z poprawionymi danymi "Toys" - tylko zdarzenia z kanalow, na kltorych byly zabowki maja wartosci dodatnie, reszta to "0"
+* podzielilismy na rano i wieczor
+* wstepna eksploracja z ggplotem
+* naprawiona funkcja liczaca zdarzenia
 
 3 czerwca: 
 
