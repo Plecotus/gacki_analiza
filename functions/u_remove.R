@@ -20,11 +20,13 @@ u_remove <- function(data, slash = F){
   
   
   if(slash) {
+    
   #Podmianka u.. na /
+    
   kody <- gsub("(.u..)+", "/", kody)
   } else{
         
-      kody <- gsub("(.u..)+", "", kody)
+      kody <- gsub("(.u..)+", ".", kody)
       
   }
   

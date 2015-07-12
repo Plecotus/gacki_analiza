@@ -4,6 +4,40 @@
 
 
 
+## Co mamy
+
+* porównanie średnich ilości pościgów pomiędzy sezonami 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+* porównanie średnich ilości pościgów pomiędzy porami dnia 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+* porównanie srednich ilości poscigów pomiędzy sezonami i porami dnia 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+
+
+
+
+* porównanie złożoności sekwencji a sezon (s, n = 4123)
+* porównanie złożoności sekwencji a pora dnia
+* porównanie złożoności sekwencji a pora dnia i sezon
+
+* porównianie złożoności sekwencji w przypadku obecności pojedynczego osobnika 
+albo grupy osobników (h, n= 4123, czyli liczba wszystkich zarejestrowanych nietoperzy,
+pojedycze 2483, w grupie 1640)
+
+
+
+* ogólna aktywność z podziałem na noce (o)
+
+
+* porównianie złożoności sekwencji a obecność pogoni/jej braku(f)
+* porównianie złożoności sekwencji a obecność pogoni/jej braku, a obecność grupy
+
+
+
+* porównianie przelotów w grupach dla sezonu i pory dnia (m)
+
+
+
 
 #Uwagi 
 

@@ -65,16 +65,41 @@ img {
 <h1>Gacki - Jabłów - analiza</h1>
 <div id="do-zrobienia" class="section level2">
 <h2>Do zrobienia:</h2>
-<ul>
-<li>surowe dane do folderu input w pliku csv, tylko mają się nazywać tak samo jak poprzednie.</li>
-</ul>
 </div>
+</div>
+<div id="co-mamy" class="section level1">
+<h1>Co mamy</h1>
+<ul>
+<li>porównanie średnich ilości pościgów pomiędzy sezonami (g, n = 84 - 21 dni x 2 pory x 2 kanały)</li>
+<li>porównanie średnich ilości pościgów pomiędzy porami dnia (g, n = 84 - 21 dni x 2 pory x 2 kanały)</li>
+<li><p>porównanie srednich ilości poscigów pomiędzy sezonami i porami dnia (g, n = 84 - 21 dni x 2 pory x 2 kanały)</p></li>
+<li>porównanie złożoności sekwencji a sezon (s, n = 4123)</li>
+<li>porównanie złożoności sekwencji a pora dnia</li>
+<li><p>porównanie złożoności sekwencji a pora dnia i sezon</p></li>
+<li><p>porównianie złożoności sekwencji w przypadku obecności pojedynczego osobnika albo grupy osobników (h, n= 4123, czyli liczba wszystkich zarejestrowanych nietoperzy, pojedycze 2483, w grupie 1640)</p></li>
+<li><p>ogólna aktywność z podziałem na noce (o)</p></li>
+<li>porównianie złożoności sekwencji a obecność pogoni/jej braku(f)</li>
+<li><p>porównianie złożoności sekwencji a obecność pogoni/jej braku, a obecność grupy</p></li>
+<li><p>porównianie przelotów w grupach dla sezonu i pory dnia (m)</p></li>
+</ul>
 </div>
 <div id="uwagi" class="section level1">
 <h1>Uwagi</h1>
-<p>Coś mi się nie zgadza w wynikach bo w zasadzie ilośc obserwacji po pocięciu powinna odpowiadać sumie ilości nietoperzy mniej więcej a jest duży rozjazd, ale może źle myślę</p>
 <div id="log" class="section level2">
 <h2>Log:</h2>
+<p>23 czerwca:</p>
+<ul>
+<li>wrzucilam “jablow_calosc.csv” z poprawionymi danymi “Toys” - tylko zdarzenia z kanalow, na kltorych byly zabowki maja wartosci dodatnie, reszta to “0”</li>
+<li>podzielilismy na rano i wieczor</li>
+<li>wstepna eksploracja z ggplotem</li>
+<li>naprawiona funkcja liczaca zdarzenia</li>
+</ul>
+<p>3 czerwca:</p>
+<ul>
+<li>uzupełnione kody zdarzeń w skrypcie “analiza_jablow”</li>
+<li>dodalam linie kodu “jablow &lt;- jablow[, 1:8]” bo z tabeli “jablow_calosc.csv” importowalo sie ponad 1000 kolumn</li>
+<li>wyeksportowalam tabele zewnetrzna “jablow_zdarzenia” z uzupełnionymi kodami ewolucji</li>
+</ul>
 <p>2 czerwca:</p>
 <ul>
 <li><p>[Przepiora] zaktualizowany plik “jablow_calosc.csv” - plik zawiera tylko surowe dane</p></li>
