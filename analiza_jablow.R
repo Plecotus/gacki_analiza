@@ -3,13 +3,14 @@
 source("functions/observation_split.R")
 source("functions/count_instances.R")
 source("functions/u_remove.R")
+source("functions/wesolowski_plot.R")
 
 
 # Wczytujemy potrzebne pakiety
 library(dplyr)
 library(lubridate)
 library(ggplot2)
-
+library(PMCMR)
 
 
 ######### WCZYTYWANIE DANYCH ------
@@ -30,7 +31,7 @@ jablow$Date_time <- dmy_hms(paste(jablow$Data, jablow$Time))
 
 # Ustalamy porę dnia (wieczór/rano)
 jablow$godzina <- hour(jablow$Date_time)
-jablow$pora_dnia <- ifelse(jablow$godzina>=12, "wieczor", "rano")
+jablow$pora_dnia <- ifelse(jablow$godzina>=12, "przed wylotem", "po powrocie")
 
 ## Usuwamy zdarzenia sprzed godziny 20
 
@@ -50,7 +51,8 @@ rm(jablow)
 
 ## Liczymy zdarzenia w obrębie każdego kodu
 
-characters <-c("a","l","t","r","p","c","d","f","n","e", "u", "g", "h", "i", "k","o", "w", "v")
+characters <-c("a","l","t","r","p","c","d","f","n","e",
+               "q","u", "g", "h", "i", "k","o", "w", "v")
 zdarzenia <- count_instances(jablow_pociete, characters)
 
 
@@ -81,6 +83,13 @@ jablow_zdarzenia <- mutate(jablow_zdarzenia,
 ## USUWANIE EVENTÓW_V, które podminieniły sie na '', w  wyniku użycia funkcji u_remove
 
 jablow_zdarzenia <- filter(jablow_zdarzenia, Event_V != '')
+
+
+## Zamiana sezonów na nazwy miesięcy
+
+jablow_zdarzenia <- mutate(jablow_zdarzenia, Season = factor(Season))
+levels(jablow_zdarzenia$Season) <- c("maj", "lipiec", "wrzesień")
+
 
 
 
@@ -120,35 +129,49 @@ summary_jablow$srednia_sekwencja <- summarise(jablow_zdarzenia,
 
 #### WYKRESY -------
 
+# Wykres aktywności dla sezonów i pór dnia
+
+z <- ggplot(summary_jablow, aes(x = pora_dnia, y = n_observation)) +
+  theme_wesolowski()
+
+z + stat_boxplot(geom ='errorbar') +geom_boxplot() + facet_grid(. ~ Season)  +
+  xlab("Pora nocy") + ylab("Liczba sekwencji") 
+
+
+
+
+
 # Średnie ilości pościgów 
-g <- ggplot(summary_jablow, aes(x = pora_dnia, y = mean_p))
+g <- ggplot(summary_jablow, aes(x = pora_dnia, y = mean_p)) + theme_wesolowski()
 
 # Tylko za podziałem na porę dnia
-g + geom_boxplot()
+g + stat_boxplot(geom ='errorbar') + geom_boxplot()
 
 # Z podziałem tylko na sezon
 
-g + geom_boxplot(aes(x = Season)) + theme_bw() + geom_jitter(aes(x = Season)) 
+g + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = Season)) 
 
 
 # Z podziałem na sezon i porę dnia
-g + geom_boxplot() + facet_grid(. ~ Season) + theme_bw() + geom_jitter()
+g + stat_boxplot(aes(x = Season), geom ='errorbar') +
+  geom_boxplot() + facet_grid(. ~ Season) 
 
 
 
 # Złożoność sekwencji a sezon
 
-s <- ggplot(jablow_zdarzenia, aes(x = Season, y = ilosc_elementow))
-s + geom_boxplot()
+s <- ggplot(jablow_zdarzenia, aes(x = Season, y = ilosc_elementow)) + theme_wesolowski()
+s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot()
 
 table(jablow_zdarzenia$Season)
 
 
 ## Złożoność sekwencji a pora dnia
-s + geom_boxplot(aes(x = pora_dnia))
+s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = pora_dnia))
 
 # Złożoność sekwencji a pora dnia i sezon
-s + geom_boxplot(aes(x = pora_dnia)) + facet_grid(.~Season)
+s + stat_boxplot(aes(x = Season), geom ='errorbar') +
+  geom_boxplot(aes(x = pora_dnia)) + facet_grid(.~Season)
 
 ## BOXPLOT DLA ZŁOŻONOŚCI SEKWENCJI Z PODZIAŁEM NA JEDNEGO OSOBNIKA I WIELU
 ## Złożoności sekwencji, a ilość osobników w obserwacji
@@ -158,11 +181,12 @@ table(jablow_zdarzenia$czy_grupa)
 
 
 # Liczba elementów a grupa/pojedyncze przeloty
-h  <- ggplot(jablow_zdarzenia, aes(x = as.factor(czy_grupa), y = ilosc_elementow))
-h + geom_boxplot() 
+h  <- ggplot(jablow_zdarzenia, aes(x = as.factor(czy_grupa), y = ilosc_elementow)) +
+  theme_wesolowski()
+h + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() 
 
 # J/w z podziałem na sezon
-h + geom_boxplot() +
+h + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() +
   facet_grid(.~Season) + geom_jitter()
 
 
@@ -191,10 +215,11 @@ poscigi_datetime_summary <- mutate(poscigi_datetime_summary, czy_grupa = Quantit
 
 table(poscigi_datetime_summary$Season)
 
-f <- ggplot(poscigi_datetime_summary, aes(x=czy_poscig, y=ilosc_elementow_mean))
+f <- ggplot(poscigi_datetime_summary, aes(x=czy_poscig, y=ilosc_elementow_mean)) +
+  theme_wesolowski()
 
-f + geom_boxplot()
-f + geom_boxplot() + facet_grid(.~ czy_grupa) + geom_jitter()
+f + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot()
+f + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() + facet_grid(.~ czy_grupa) + geom_jitter()
 
 ### PRZELOTY GRUPOWE RANO I WIECZOTEM
 
@@ -202,15 +227,18 @@ grupy_rano_wieczor <- group_by(jablow_zdarzenia, Season,Night,
                                pora_dnia, czy_grupa)
 grupy_rano_wieczor_summary <- summarize(grupy_rano_wieczor, n_zdarzen =n())
 
-m <- ggplot(grupy_rano_wieczor_summary, aes(x = czy_grupa, y = n_zdarzen))
+m <- ggplot(grupy_rano_wieczor_summary, aes(x = czy_grupa, y = n_zdarzen)) +
+  theme_wesolowski()
 
-m + geom_boxplot() + facet_grid(Season~pora_dnia) + theme_bw() + geom_jitter()
+m + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() + 
+  facet_grid(Season~pora_dnia) + theme_bw() + geom_jitter()
 
 
 ## Ogólna aktywność
 
-o <- ggplot(jablow_zdarzenia, aes(x = Season))
-o + geom_bar(aes(fill = factor(Night))) +  scale_fill_grey() + theme_bw()
+o <- ggplot(jablow_zdarzenia, aes(x = Season)) + theme_wesolowski()
+o + stat_boxplot(aes(x = Season), geom ='errorbar') +
+  geom_bar(aes(fill = factor(Night))) +  scale_fill_grey() + theme_bw()
 
 
 
@@ -218,6 +246,22 @@ o + geom_bar(aes(fill = factor(Night))) +  scale_fill_grey() + theme_bw()
 
 unikalne_sekwencje <- sort(table(jablow_zdarzenia$Event_V),decreasing = T)
 head(unikalne_sekwencje, 100)
+
+
+## PEÓBA ANALIZY STATYSTYCZNEJ
+
+pora_sezon <- factor(paste(summary_jablow$Season, summary_jablow$pora_dnia))
+kruskal.test(n_observation ~ pora_sezon, data = summary_jablow)
+wynik <-posthoc.kruskal.nemenyi.test(n_observation ~ pora_sezon, data = summary_jablow, 
+                                     dist = "Tukey") 
+x <-round(p.adjust(wynik$p.value, n = 15), 5)
+dim(x)  <- c(5,5)
+x
+wynik_ad <- wynik
+wynik_ad$p.value <-x
+
+
+###KURWA
 
 
 
