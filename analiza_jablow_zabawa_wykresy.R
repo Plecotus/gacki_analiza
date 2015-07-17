@@ -125,21 +125,6 @@ summary_jablow$srednia_sekwencja <- summarise(jablow_zdarzenia,
 
 #### WYKRESY -------
 
-# Średnie ilości zdarzeń dla sezonów i pór dnia
-
-z <- ggplot(summary_jablow, aes(x = pora_dnia, y = n_observation))
-
-summary_jablow$Season <- factor(summary_jablow$Season,
-                                levels = c("Maj", "Lipiec", "Wrzesień"))
-
-do_wykresow <- theme_set(theme_bw())
-do_wykresow <- theme_update(panel.background = element_rect(colour = "white"),
-                            panel.grid.major = element_line(colour = "white"),
-                            axis.text = element_text(size = 12),
-                            axis.title.x = element_text(size = 12))
-
-z + geom_boxplot() + facet_grid(. ~ Season) + theme_set(do_wykresow) + 
-  xlab("Pora nocy") + ylab("Liczba sekwencji")
 
 
 
