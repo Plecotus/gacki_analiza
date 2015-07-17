@@ -103,7 +103,7 @@ write.csv(jablow_zdarzenia, "output/jablow_zdarzenia.csv")
 
 # Grupujemy po sezonach, nocach i porze dnia, żeby potem policzyć sumy dla konkretnych
 # zdarzeń
-jablow_zdarzenia <- group_by(jablow_zdarzenia, Season, Channel, Night, pora_dnia)
+jablow_zdarzenia <- group_by(jablow_zdarzenia, Season, Night, pora_dnia)
 
 ### Liczymy liczbę pościgów i liczbę zdarzeń
 
@@ -153,7 +153,7 @@ g + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = Seaso
 
 
 # Z podziałem na sezon i porę dnia
-g + stat_boxplot(aes(x = Season), geom ='errorbar') +
+g + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') +
   geom_boxplot() + facet_grid(. ~ Season) 
 
 
@@ -163,14 +163,15 @@ g + stat_boxplot(aes(x = Season), geom ='errorbar') +
 s <- ggplot(jablow_zdarzenia, aes(x = Season, y = ilosc_elementow)) + theme_wesolowski()
 s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot()
 
+
 table(jablow_zdarzenia$Season)
 
 
 ## Złożoność sekwencji a pora dnia
-s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = pora_dnia))
+s + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') + geom_boxplot(aes(x = pora_dnia))
 
 # Złożoność sekwencji a pora dnia i sezon
-s + stat_boxplot(aes(x = Season), geom ='errorbar') +
+s + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') +
   geom_boxplot(aes(x = pora_dnia)) + facet_grid(.~Season)
 
 ## BOXPLOT DLA ZŁOŻONOŚCI SEKWENCJI Z PODZIAŁEM NA JEDNEGO OSOBNIKA I WIELU
@@ -183,11 +184,11 @@ table(jablow_zdarzenia$czy_grupa)
 # Liczba elementów a grupa/pojedyncze przeloty
 h  <- ggplot(jablow_zdarzenia, aes(x = as.factor(czy_grupa), y = ilosc_elementow)) +
   theme_wesolowski()
-h + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() 
+h + stat_boxplot( geom ='errorbar') + geom_boxplot() 
 
 # J/w z podziałem na sezon
-h + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() +
-  facet_grid(.~Season) + geom_jitter()
+h + stat_boxplot( geom ='errorbar') + geom_boxplot() +
+  facet_grid(.~Season)
 
 
 
@@ -218,8 +219,8 @@ table(poscigi_datetime_summary$Season)
 f <- ggplot(poscigi_datetime_summary, aes(x=czy_poscig, y=ilosc_elementow_mean)) +
   theme_wesolowski()
 
-f + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot()
-f + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() + facet_grid(.~ czy_grupa) + geom_jitter()
+f + stat_boxplot( geom ='errorbar') + geom_boxplot()
+f + stat_boxplot( geom ='errorbar') + geom_boxplot() + facet_grid(.~ czy_grupa)
 
 ### PRZELOTY GRUPOWE RANO I WIECZOTEM
 
@@ -230,15 +231,14 @@ grupy_rano_wieczor_summary <- summarize(grupy_rano_wieczor, n_zdarzen =n())
 m <- ggplot(grupy_rano_wieczor_summary, aes(x = czy_grupa, y = n_zdarzen)) +
   theme_wesolowski()
 
-m + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() + 
-  facet_grid(Season~pora_dnia) + theme_bw() + geom_jitter()
+m + stat_boxplot( geom ='errorbar') + geom_boxplot() + 
+  facet_grid(Season~pora_dnia) + theme_bw()
 
 
 ## Ogólna aktywność
 
 o <- ggplot(jablow_zdarzenia, aes(x = Season)) + theme_wesolowski()
-o + stat_boxplot(aes(x = Season), geom ='errorbar') +
-  geom_bar(aes(fill = factor(Night))) +  scale_fill_grey() + theme_bw()
+o +   geom_bar() +  scale_fill_grey() 
 
 
 
@@ -248,7 +248,7 @@ unikalne_sekwencje <- sort(table(jablow_zdarzenia$Event_V),decreasing = T)
 head(unikalne_sekwencje, 100)
 
 
-## PEÓBA ANALIZY STATYSTYCZNEJ
+## PRÓBA ANALIZY STATYSTYCZNEJ
 
 pora_sezon <- factor(paste(summary_jablow$Season, summary_jablow$pora_dnia))
 kruskal.test(n_observation ~ pora_sezon, data = summary_jablow)
@@ -260,6 +260,14 @@ x
 wynik_ad <- wynik
 wynik_ad$p.value <-x
 
+
+## ILE LITEREK
+
+literki <- group_by(jablow_zdarzenia, Season)
+liter <-summarise_each(literki,
+                                 funs(
+                                   sum(., na.rm = T)
+                                 ), vars = -c(1:11))
 
 ###KURWA
 
