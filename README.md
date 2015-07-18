@@ -9,7 +9,7 @@
 * powrównianie ogólnej aktywności (z)
 
 * porównanie średnich ilości pościgów pomiędzy sezonami 
-(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+(g, n = 84 - 21 dni x 2 pory x 2 kanały) teraz jest /2
 * porównanie średnich ilości pościgów pomiędzy porami dnia 
 (g, n = 84 - 21 dni x 2 pory x 2 kanały)
 * porównanie srednich ilości poscigów pomiędzy sezonami i porami dnia 
