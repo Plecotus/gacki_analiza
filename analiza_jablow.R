@@ -6,6 +6,7 @@ source("functions/u_remove.R")
 source("functions/wesolowski_plot.R")
 
 
+
 # Wczytujemy potrzebne pakiety
 library(dplyr)
 library(lubridate)
@@ -90,7 +91,9 @@ jablow_zdarzenia <- filter(jablow_zdarzenia, Event_V != '')
 jablow_zdarzenia <- mutate(jablow_zdarzenia, Season = factor(Season))
 levels(jablow_zdarzenia$Season) <- c("maj", "lipiec", "wrzesień")
 
-
+# Zamiana zabawek 0,1 na factor 'brak zabawek", "obecność zabawek"
+jablow_zdarzenia <- mutate(jablow_zdarzenia, Toys = factor(Toys))
+levels(jablow_zdarzenia$Toys) <-c("brak zabawek", "obecność zabawek")
 
 
 ## Zapisuje dane do tabeli zewnętrznej
@@ -135,7 +138,7 @@ z <- ggplot(summary_jablow, aes(x = pora_dnia, y = n_observation)) +
   theme_wesolowski()
 
 z + stat_boxplot(geom ='errorbar') +geom_boxplot() + facet_grid(. ~ Season)  +
-  xlab("Pora nocy") + ylab("Liczba sekwencji") 
+  xlab("Pora nocy") + ylab("Liczba obserwacji") 
 
 
 
@@ -241,6 +244,20 @@ o <- ggplot(jablow_zdarzenia, aes(x = Season)) + theme_wesolowski()
 o +   geom_bar() +  scale_fill_grey() 
 
 
+## WYkres zdarzeń
+
+
+zabawki <- filter(jablow_zdarzenia, Night >2 & Season == 'maj' | Night >1 & Season != 'maj')
+zabawki <- group_by(zabawki, Season, Night, Channel, Toys)
+
+zabawki_summary <- summarize(zabawki, n_obs =n(), srednia_sekwencja = mean(ilosc_elementow))
+
+t <- ggplot(zabawki_summary, aes(x = factor(Toys), y = n_obs))
+t + geom_boxplot() + facet_grid(. ~ Season, scales = "free_x")+
+  theme_wesolowski()
+
+t + geom_boxplot(aes(y=srednia_sekwencja)) + facet_grid(.~Season)+
+  theme_wesolowski() + ylab("Średnia długość sekwencji") + xlab("Obecność zabawek")
 
 ## UNIKALNE SEKWENCJE
 
@@ -254,11 +271,47 @@ pora_sezon <- factor(paste(summary_jablow$Season, summary_jablow$pora_dnia))
 kruskal.test(n_observation ~ pora_sezon, data = summary_jablow)
 wynik <-posthoc.kruskal.nemenyi.test(n_observation ~ pora_sezon, data = summary_jablow, 
                                      dist = "Tukey") 
+
+x <-round(wynik$p.value, 6)
 x <-round(p.adjust(wynik$p.value, n = 15), 5)
 dim(x)  <- c(5,5)
 x
 wynik_ad <- wynik
-wynik_ad$p.value <-x
+wynik_ad$p.value <- x
+
+
+
+
+### Jak analizować
+
+## Robienie factora 6 pozimowego
+
+# np. zabawki_sezon <- factor(paste(tabela$Toys, tabela$Season)) ## to potem idzie do 'z_podzialem_na_co"
+
+# kruskal.test(co_testowane ~ z_podzialem_na_co, data = tabela_danych)
+
+# potem porównianie M-W, 
+# maj <-filter (tabela_danych, Season == 'maj')
+# wilcox.test(co_testowane ~ z_podzialem_na_co, data = maj)
+
+
+# Jak kruskal z 3 poziomami to każdy z każdym M-W.
+# kruskal.test(mean_p ~ Season, data = tabela_danch)
+
+# to potem 
+# maj <- filter(tabela_danych, Season == 'maj')
+# lipiec <- filter(tabela_danych, Season == 'lipiec')
+# wrzesien <- filter(tabela_danych, Season == 'wrzesien')
+
+# istotne statystycznie gdy p < 0.05/liczba_porownan (Bonferronii)
+.05/15
+
+# wilcox.test(maj$mean_p, lipiec$mean_p)
+# wilcox.test(wrzesien$mean_p, lipiec$mean_p)
+# wilcox.test(maj$mean_p, wrzesien$mean_p)
+
+
+
 
 
 ## ILE LITEREK
@@ -269,9 +322,21 @@ liter <-summarise_each(literki,
                                    sum(., na.rm = T)
                                  ), vars = -c(1:11))
 
-###KURWA
 
 
+boxplot(r/n_observation~Season, data = summary_jablow)
+kruskal.test(r/n_observation~Season, data = summary_jablow)
+
+maj <- filter(summary_jablow, Season == 'maj')
+lipiec <- filter(summary_jablow, Season == 'lipiec')
+wrzesien <- filter(summary_jablow, Season == 'wrzesień')
+
+# istotne statystycznie gdy p < 0.05/liczba_porownan (Bonferronii)
+.05/3
+
+wilcox.test(maj$r/maj$n_observation, lipiec$r/lipiec$n_observation)
+wilcox.test(wrzesien$r/wrzesien$n_observation, lipiec$r/lipiec$n_observation)
+wilcox.test(maj$r/maj$n_observation, wrzesien$r/wrzesien$n_observation)
 
 
 
