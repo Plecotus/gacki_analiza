@@ -324,7 +324,19 @@ liter <-summarise_each(literki,
 
 
 
+boxplot(r/n_observation~Season, data = summary_jablow)
+kruskal.test(r/n_observation~Season, data = summary_jablow)
 
+maj <- filter(summary_jablow, Season == 'maj')
+lipiec <- filter(summary_jablow, Season == 'lipiec')
+wrzesien <- filter(summary_jablow, Season == 'wrzesień')
+
+# istotne statystycznie gdy p < 0.05/liczba_porownan (Bonferronii)
+.05/3
+
+wilcox.test(maj$r/maj$n_observation, lipiec$r/lipiec$n_observation)
+wilcox.test(wrzesien$r/wrzesien$n_observation, lipiec$r/lipiec$n_observation)
+wilcox.test(maj$r/maj$n_observation, wrzesien$r/wrzesien$n_observation)
 
 
 
