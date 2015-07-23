@@ -93,7 +93,7 @@ levels(jablow_zdarzenia$Season) <- c("maj", "lipiec", "wrzesień")
 
 # Zamiana zabawek 0,1 na factor 'brak zabawek", "obecność zabawek"
 jablow_zdarzenia <- mutate(jablow_zdarzenia, Toys = factor(Toys))
-levels(jablow_zdarzenia$Toys) <-c("brak zabawek", "obecność zabawek")
+levels(jablow_zdarzenia$Toys) <-c("brak przedmiotów", "obecność przedmiotów")
 
 
 ## Zapisuje dane do tabeli zewnętrznej
@@ -141,59 +141,141 @@ z + stat_boxplot(geom ='errorbar') +geom_boxplot() + facet_grid(. ~ Season)  +
   xlab("Pora nocy") + ylab("Liczba obserwacji") 
 
 
+# Test dla "wykres aktywnosci dla sezonow i por dnia"
+## Kruskal-Wallis i test post-hoc
 
+pora_sezon <- factor(paste(summary_jablow$Season, summary_jablow$pora_dnia))
+kruskal.test(n_observation ~ pora_sezon, data = summary_jablow)
+wynik <- posthoc.kruskal.nemenyi.test(n_observation ~ pora_sezon, data = summary_jablow, 
+                                     dist = "Tukey") 
+
+x <-round(wynik$p.value, 6)
+x <-round(p.adjust(wynik$p.value, n = 15), 5)
+dim(x)  <- c(5,5)
+x
+wynik_ad <- wynik
+wynik_ad$p.value <- x
+
+
+.05/15
 
 
 # Średnie ilości pościgów 
 g <- ggplot(summary_jablow, aes(x = pora_dnia, y = mean_p)) + theme_wesolowski()
 
 # Tylko za podziałem na porę dnia
-g + stat_boxplot(geom ='errorbar') + geom_boxplot()
+g + stat_boxplot(geom ='errorbar') + geom_boxplot() + xlab("Pora nocy") + 
+  ylab("Częstość pogoni w obserwacjach")
+
+## Testowanie
+
+wilcox.test(mean_p ~ pora_dnia, data = summary_jablow)
 
 # Z podziałem tylko na sezon
 
-g + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = Season)) 
+g + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot(aes(x = Season)) +
+  xlab("Etap") + ylab("Częstość pogoni w obserwacjach")
 
+## Testowanie
+
+kruskal.test(mean_p ~ Season, data = summary_jablow)
+
+maj <- filter(summary_jablow, Season == 'maj')
+lipiec <- filter(summary_jablow, Season == 'lipiec')
+wrzesien <- filter(summary_jablow, Season == 'wrzesień')
+
+wilcox.test(maj$mean_p, lipiec$mean_p)
+wilcox.test(wrzesien$mean_p, lipiec$mean_p)
+wilcox.test(maj$mean_p, wrzesien$mean_p)
 
 # Z podziałem na sezon i porę dnia
 g + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') +
-  geom_boxplot() + facet_grid(. ~ Season) 
+  geom_boxplot() + facet_grid(. ~ Season) +
+  xlab("Pora nocy") + ylab("Częstość pogoni w obserwacjach")
+  
+## Testowanie
 
+pora_sezon <- factor(paste(summary_jablow$pora_dnia, summary_jablow$Season))
 
+kruskal.test(mean_p ~ pora_sezon, data = summary_jablow)
+
+posthoc.kruskal.nemenyi.test(mean_p ~ pora_sezon, data = summary_jablow, 
+                             dist = "Tukey")
 
 # Złożoność sekwencji a sezon
 
 s <- ggplot(jablow_zdarzenia, aes(x = Season, y = ilosc_elementow)) + theme_wesolowski()
-s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot()
+s + stat_boxplot(aes(x = Season), geom ='errorbar') + geom_boxplot() +
+  xlab("Etap") + ylab("Liczba elementów w obserwacjach")
 
 
 table(jablow_zdarzenia$Season)
 
+# Testowanie
+
+kruskal.test(ilosc_elementow ~ Season, data = jablow_zdarzenia)
+
+maj <- filter(summary_jablow, Season == 'maj')
+lipiec <- filter(summary_jablow, Season == 'lipiec')
+wrzesien <- filter(summary_jablow, Season == 'wrzesień')
+
+wilcox.test(maj$ilosc_elementow, lipiec$ilosc_elementow)
+wilcox.test(wrzesien$ilosc_elementow, lipiec$ilosc_elementow)
+wilcox.test(maj$ilosc_elementow, wrzesien$ilosc_elementow)
 
 ## Złożoność sekwencji a pora dnia
-s + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') + geom_boxplot(aes(x = pora_dnia))
+s + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') + geom_boxplot(aes(x = pora_dnia)) +
+  xlab("Pora nocy") + ylab("Liczba elementów w sekwencjach")
+
+# Test - nie wiem, czy to dobrze!!!!
+po_powrocie <- filter(summary_jablow, pora_dnia == "po powrocie")
+przed_wylotem <- filter(summary_jablow, pora_dnia == "przed wylotem")
+
+wilcox.test(po_powrocie$ilosc_elementow, przed_wylotem$ilosc_elementow)
 
 # Złożoność sekwencji a pora dnia i sezon
 s + stat_boxplot(aes(x = pora_dnia), geom ='errorbar') +
-  geom_boxplot(aes(x = pora_dnia)) + facet_grid(.~Season)
+  geom_boxplot(aes(x = pora_dnia)) + facet_grid(.~Season) +
+  xlab("Pora nocy") + ylab("Liczba elementów w sekwencjach")
+
+# Test
+zlozonosc_sezon <- factor(paste(summary_jablow$pora_dnia, summary_jablow$Season))
+
+kruskal.test(ilosc_elementow ~ zlozonosc_sezon, data = summary_jablow)
+posthoc.kruskal.nemenyi.test(ilosc_elementow ~ zlozonosc_sezon, data = summary_jablow, 
+                             dist = "Tukey")
 
 ## BOXPLOT DLA ZŁOŻONOŚCI SEKWENCJI Z PODZIAŁEM NA JEDNEGO OSOBNIKA I WIELU
 ## Złożoności sekwencji, a ilość osobników w obserwacji
 
 jablow_zdarzenia <- mutate(jablow_zdarzenia, czy_grupa = Quantity>1)
 table(jablow_zdarzenia$czy_grupa)
-
+jablow_zdarzenia <- mutate(jablow_zdarzenia, czy_grupa = factor(czy_grupa))
+levels(jablow_zdarzenia$czy_grupa) <- c("przelot pojedynczy", "przelot grupowy")
 
 # Liczba elementów a grupa/pojedyncze przeloty
 h  <- ggplot(jablow_zdarzenia, aes(x = as.factor(czy_grupa), y = ilosc_elementow)) +
   theme_wesolowski()
-h + stat_boxplot( geom ='errorbar') + geom_boxplot() 
+h + stat_boxplot( geom ='errorbar') + geom_boxplot() +
+  xlab("Rodzaj przelotu") + ylab("Liczba elementów w sekwencjach")
+
+# Test - nie wiem, czy dobrze !!!!
+
+przelot_pojedynczy <- filter(jablow_zdarzenia, czy_grupa == "przelot pojedynczy")
+przelot_grupowy <- filter(jablow_zdarzenia, czy_grupa == "przelot grupowy")
+
+wilcox.test(przelot_pojedynczy$ilosc_elementow, przelot_grupowy$ilosc_elementow)
 
 # J/w z podziałem na sezon
 h + stat_boxplot( geom ='errorbar') + geom_boxplot() +
-  facet_grid(.~Season)
+  facet_grid(.~Season) + xlab("Rodzaj przelotu") + ylab("Liczba elementów w sekwencjach")
 
+# Test 
+grupa_sezon <- factor(paste(jablow_zdarzenia$czy_grupa, jablow_zdarzenia$Season))
+kruskal.test(ilosc_elementow ~ grupa_sezon, data = jablow_zdarzenia)
 
+posthoc.kruskal.nemenyi.test(ilosc_elementow ~ grupa_sezon, data = jablow_zdarzenia,
+                             ddist = "Tukey")
 
 ## BOXPLOT DLA ZLOZONOSCI W SYTUACJI OBECNOSCI POSCIGU LUB JEGO BRAKU
 
@@ -217,13 +299,22 @@ poscigi_datetime_summary <- summarise(poscigi_datetime, p_sum = sum(p, na.rm=T),
 poscigi_datetime_summary <- mutate(poscigi_datetime_summary, czy_poscig = p_sum >0)
 poscigi_datetime_summary <- mutate(poscigi_datetime_summary, czy_grupa = Quantity>1)
 
+poscigi_datetime_summary <- mutate(poscigi_datetime_summary, czy_grupa = factor(czy_grupa))
+levels(poscigi_datetime_summary$czy_grupa) <- c("przelot grupowy","przelot pojedynczy")
+
 table(poscigi_datetime_summary$Season)
 
 f <- ggplot(poscigi_datetime_summary, aes(x=czy_poscig, y=ilosc_elementow_mean)) +
   theme_wesolowski()
 
-f + stat_boxplot( geom ='errorbar') + geom_boxplot()
-f + stat_boxplot( geom ='errorbar') + geom_boxplot() + facet_grid(.~ czy_grupa)
+f + stat_boxplot( geom ='errorbar') + geom_boxplot() +
+  xlab("Występowanie pogoni") + ylab("Liczba elementów w obserwacjach")
+
+# Test
+kruskal.test(ilosc_elementow_mean ~ czy_poscig, data = poscigi_datetime_summary)
+
+f + stat_boxplot( geom ='errorbar') + geom_boxplot() + facet_grid(.~ czy_grupa) +
+  xlab("Występowanie pogoni") + ylab("Liczba elementów w obserwacjach")
 
 ### PRZELOTY GRUPOWE RANO I WIECZOTEM
 
@@ -231,33 +322,54 @@ grupy_rano_wieczor <- group_by(jablow_zdarzenia, Season,Night,
                                pora_dnia, czy_grupa)
 grupy_rano_wieczor_summary <- summarize(grupy_rano_wieczor, n_zdarzen =n())
 
-m <- ggplot(grupy_rano_wieczor_summary, aes(x = czy_grupa, y = n_zdarzen)) +
+m <- ggplot(grupy_rano_wieczor_summary, aes(x = pora_dnia, y = n_zdarzen)) +
   theme_wesolowski()
 
 m + stat_boxplot( geom ='errorbar') + geom_boxplot() + 
-  facet_grid(Season~pora_dnia) + theme_bw()
+  facet_grid(Season~czy_grupa) + theme_wesolowski() +
+  xlab("Pora dnia") + ylab("Liczba zdarzeń")
 
+# Testy - dużo zmiennych, nie wiem czy dobrze !!!!
 
+grupa_pora_sezon <- factor(paste(grupy_rano_wieczor_summary$czy_grupa,
+                                 grupy_rano_wieczor_summary$pora_dnia,
+                                 grupy_rano_wieczor_summary$Season)) 
+kruskal.test(n_zdarzen ~ grupa_pora_sezon, data = grupy_rano_wieczor_summary)
+posthoc.kruskal.nemenyi.test(n_zdarzen ~ grupa_pora_sezon, 
+                             data = grupy_rano_wieczor_summary,
+                             dist = "Tukey")
 ## Ogólna aktywność
 
 o <- ggplot(jablow_zdarzenia, aes(x = Season)) + theme_wesolowski()
-o +   geom_bar() +  scale_fill_grey() 
-
+o + geom_bar() +  scale_fill_grey() +
+  xlab("Etap") + ylab("Liczba sekwencji")
 
 ## WYkres zdarzeń
 
 
-zabawki <- filter(jablow_zdarzenia, Night >2 & Season == 'maj' | Night >1 & Season != 'maj')
+zabawki <- filter(jablow_zdarzenia, Night >3 & Season == 'maj' | Night >2 & Season != 'maj')
 zabawki <- group_by(zabawki, Season, Night, Channel, Toys)
 
 zabawki_summary <- summarize(zabawki, n_obs =n(), srednia_sekwencja = mean(ilosc_elementow))
 
 t <- ggplot(zabawki_summary, aes(x = factor(Toys), y = n_obs))
 t + geom_boxplot() + facet_grid(. ~ Season, scales = "free_x")+
-  theme_wesolowski()
+  theme_wesolowski() + xlab("Dodatkowe przedmioty") + ylab("Liczba obserwacji")
+
+# Testy
+zabawki_sezon <- factor(paste(zabawki_summary$Toys, zabawki_summary$Season))
+kruskal.test(n_obs ~ zabawki_sezon, data = zabawki_summary)
+posthoc.kruskal.nemenyi.test(n_obs ~ zabawki_sezon, data = zabawki_summary,
+                             dist = "Tukey")
 
 t + geom_boxplot(aes(y=srednia_sekwencja)) + facet_grid(.~Season)+
-  theme_wesolowski() + ylab("Średnia długość sekwencji") + xlab("Obecność zabawek")
+  theme_wesolowski() + ylab("Średnia długość sekwencji") + xlab("Dodatkowe przedmioty")
+
+# Testy 
+kruskal.test(srednia_sekwencja ~ zabawki_sezon, data = zabawki_summary)
+posthoc.kruskal.nemenyi.test(srednia_sekwencja ~ zabawki_sezon, data = zabawki_summary,
+                             dist = "Tukey")
+
 
 ## UNIKALNE SEKWENCJE
 
@@ -266,20 +378,6 @@ head(unikalne_sekwencje, 100)
 
 
 ## PRÓBA ANALIZY STATYSTYCZNEJ
-
-pora_sezon <- factor(paste(summary_jablow$Season, summary_jablow$pora_dnia))
-kruskal.test(n_observation ~ pora_sezon, data = summary_jablow)
-wynik <-posthoc.kruskal.nemenyi.test(n_observation ~ pora_sezon, data = summary_jablow, 
-                                     dist = "Tukey") 
-
-x <-round(wynik$p.value, 6)
-x <-round(p.adjust(wynik$p.value, n = 15), 5)
-dim(x)  <- c(5,5)
-x
-wynik_ad <- wynik
-wynik_ad$p.value <- x
-
-
 
 
 ### Jak analizować
@@ -322,11 +420,12 @@ liter <-summarise_each(literki,
                                    sum(., na.rm = T)
                                  ), vars = -c(1:11))
 
+### Liczymy istotność dla różnic występowania r między sezonami
 
-
-boxplot(r/n_observation~Season, data = summary_jablow)
+boxplot(r/n_observation~Season, data = summary_jablow,
+        xlab = "Etap",
+        ylab = "Częstość występowania zawisania")
 kruskal.test(r/n_observation~Season, data = summary_jablow)
-
 maj <- filter(summary_jablow, Season == 'maj')
 lipiec <- filter(summary_jablow, Season == 'lipiec')
 wrzesien <- filter(summary_jablow, Season == 'wrzesień')
@@ -337,6 +436,5 @@ wrzesien <- filter(summary_jablow, Season == 'wrzesień')
 wilcox.test(maj$r/maj$n_observation, lipiec$r/lipiec$n_observation)
 wilcox.test(wrzesien$r/wrzesien$n_observation, lipiec$r/lipiec$n_observation)
 wilcox.test(maj$r/maj$n_observation, wrzesien$r/wrzesien$n_observation)
-
 
 
