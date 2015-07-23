@@ -2,11 +2,11 @@
 
 ## Do zrobienia:
 
-### 24.07.2014 Sprawdzić:
+### 24.07.2014 Sprawdź proszę Zieleń, czy dobrze rozpisałam ciało testu satystycznego dla:
 
-* liczba zdarzeń a rodzaj przelotu, pora dnia i sezon
-* liczba elementów w sekwencji a rodzaj przelotu
-* złozoność sekwencji a pora dnia
+* liczba zdarzeń a rodzaj przelotu, pora dnia i sezon (332 linia)
+* liczba elementów w sekwencji a rodzaj przelotu (262)
+* złozoność sekwencji a pora dnia (230)
 
 
 ## Co mamy
