@@ -2,9 +2,19 @@
 
 ## Do zrobienia:
 
+### 24.07.2014 Sprawdzić:
+
+* liczba zdarzeń a rodzaj przelotu, pora dnia i sezon
+* liczba elementów w sekwencji a rodzaj przelotu
+* złozoność sekwencji a pora dnia
 
 
 ## Co mamy
+
+24.07.2015
+
+* Dodałam linie testow statystycznych, sprawdź proszę Zieleń, czy dobrze!
+
 
 * powrównianie ogólnej aktywności (z)
 
