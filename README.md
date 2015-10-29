@@ -2,6 +2,7 @@
 
 ## Do zrobienia:
 
+<<<<<<< HEAD
 ### 24.07.2014 Sprawdź proszę Zieleń, czy dobrze rozpisałam ciało testu satystycznego dla:
 
 * liczba zdarzeń a rodzaj przelotu, pora dnia i sezon (332 linia)
@@ -49,6 +50,9 @@ pojedycze 2483, w grupie 1640)
 * porównianie przelotów w grupach dla sezonu i pory dnia (m)
 
 
+=======
+poprawienie wczytywania danych  -  strefy czasowe.
+>>>>>>> ed2e16b639adf5536a21e6f2c6ea18f30e3555b4
 
 
 #Uwagi 
