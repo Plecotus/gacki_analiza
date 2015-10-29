@@ -53,7 +53,7 @@ rm(jablow)
 ## Liczymy zdarzenia w obrębie każdego kodu
 
 characters <-c("a","l","t","r","p","c","d","f","n","e",
-               "q","u", "g", "h", "i", "k","o", "w", "v")
+               "q", "g", "h", "i", "k","o", "w", "v")
 zdarzenia <- count_instances(jablow_pociete, characters)
 
 
@@ -79,7 +79,7 @@ jablow_zdarzenia$ilosc_elementow <- apply(jablow_zdarzenia[,12:29],1,sum, na.rm 
 jablow_zdarzenia <- mutate(jablow_zdarzenia, 
                            ilosc_elementow = ifelse(is.na(p), ilosc_elementow,ilosc_elementow-p))
 
-
+## MOŻNA DODAĆ EWENTUALNIE to damo dla q, i, k.!!!!
 
 ## USUWANIE EVENTÓW_V, które podminieniły sie na '', w  wyniku użycia funkcji u_remove
 
