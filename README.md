@@ -3,6 +3,7 @@
 
 ## Do zrobienia:
 
+<<<<<<< HEAD
 
 
 
@@ -57,6 +58,9 @@ pojedycze 2483, w grupie 1640)
 
 * porównianie przelotów w grupach dla sezonu i pory dnia (m)
 
+=======
+poprawienie wczytywania danych  -  strefy czasowe.
+>>>>>>> master
 
 
 #Uwagi 
