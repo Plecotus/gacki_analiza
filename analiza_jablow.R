@@ -14,6 +14,13 @@ library(ggplot2)
 library(PMCMR)
 
 
+
+
+shannon <- function(x){
+    s <- (-1) * sum(log(x^x))
+    s
+}
+
 ######### WCZYTYWANIE DANYCH ------
 ## Wczytujemy tabelę danych z Jabłowa.
 

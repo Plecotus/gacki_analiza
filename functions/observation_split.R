@@ -12,7 +12,7 @@ observation_split <- function(data){
   do_pociecia <- which(regexpr("/", kody)>0)
   
   #Tworzymy nowe puste tabele danych o tej samej iloście kolumn co dane wejsciowe
-  pusta_tabela <- data[-c(1:length(data[,1])),]
+  pusta_tabela <- data[-c(1:dim(data)[1]),]
   nowe_obserwacje <- pusta_tabela
   
   
