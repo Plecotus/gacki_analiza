@@ -48,6 +48,14 @@ calosc<- separate(calosc,Season, c("kolonia", "Season"), "_")
 calosc$Season[calosc$Season == "1"] <- "I" 
 calosc$Season[calosc$Season == "2"] <- "II" 
 calosc$Season[calosc$Season == "3"] <- "III" 
+
+
+
+## Poprawiamy kanały 
+calosc$Channel[calosc$Channel == "Ch1"] <- "ch1"
+calosc$Channel[calosc$Channel == "KAM2"] <- "ch2"
+calosc$Channel[calosc$Channel == "KAM4"] <- "ch1"
+
 ## Zmieniam daty na format R - patrz lubridate
 calosc$Date_time <- dmy_hms(paste(calosc$Data, calosc$Time))
 calosc$Date_time <- calosc$Date_time -  minutes(60)
@@ -71,19 +79,6 @@ calosc <- mutate(calosc,after_dusk = Date_time - sunset,
 
 
 
-
-#histogram(as.numeric(calosc$after_dusk[calosc$Part_night=="wieczor"])/60)
-
-#histogram(as.numeric(calosc$till_dawn[calosc$Part_night=="rano"]))
-
-
-
-#hist_act <- ggplot(calosc[calosc$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
-#hist_act + geom_histogram(binwidth = 5) + facet_grid(. ~ Season)
-
-#hist_act <- ggplot(calosc[calosc$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
-#hist_act + geom_histogram(binwidth = 5) + facet_grid(. ~ Season) + 
-    #scale_x_continuous(limits = c(0, 150))
 
 
 ## Usuwamy dane zawierające oberwacje niepełne (u) oraz
@@ -140,7 +135,8 @@ characters <-c("a","v","c","l","t","o","d","f","w","n","e", "h", "g","r",
 zdarzenia <- count_instances(calosc_split, characters)
 calosc_split_zdarzenia <- cbind(calosc_split, zdarzenia)
 
-calosc_split_zdarzenia$ilosc_elementow <- apply(calosc_split_zdarzenia[,16:29],1,sum, na.rm = T)
+calosc_split_zdarzenia$ilosc_elementow <- apply(calosc_split_zdarzenia[,16:29],
+                                                1,sum, na.rm = T)
 
 calosc_split_zdarzenia$shannon <- apply(as.matrix(zdarzenia), 1, function(x){
     suma <- sum(x, na.rm = T)
@@ -152,7 +148,7 @@ calosc_split_zdarzenia$shannon <- apply(as.matrix(zdarzenia), 1, function(x){
 
 shan_plot <- ggplot(calosc_split_zdarzenia, aes(x = Part_night, y = shannon))
 
-shan_plot + geom_boxplot(aes(x = Channel)) + facet_grid(kolonia~Season)
+shan_plot + geom_boxplot(aes(x = Channel)) + facet_grid(Phase~Season)
 
 
 
@@ -171,6 +167,34 @@ summary_calosc <- summarise_each(calosc_split_zdarzenia,
                                  ), vars = -c(1:15))
 
 
+
+## Przeliczanie na proporcje
+
+summary_calosc_proporcje <- mutate(summary_calosc,
+                                   a = a/ilosc_elementow,
+                                   v = v/ilosc_elementow,
+                                   c = c/ilosc_elementow, 
+                                   l = l/ilosc_elementow,
+                                   t = t/ilosc_elementow, 
+                                   o = o/ilosc_elementow, 
+                                   d = d/ilosc_elementow,
+                                   f = f/ilosc_elementow,
+                                   w = w/ilosc_elementow,
+                                   n = n/ilosc_elementow,
+                                   e = e/ilosc_elementow,
+                                   h = h/ilosc_elementow,
+                                   g = g/ilosc_elementow,
+                                   r = r/ilosc_elementow
+                                   )
+
+boxplot(summary_calosc_proporcje$a, summary_calosc_proporcje$v,
+        summary_calosc_proporcje$c, summary_calosc_proporcje$l,
+        summary_calosc_proporcje$t, summary_calosc_proporcje$o,
+        summary_calosc_proporcje$d, summary_calosc_proporcje$f,
+        summary_calosc_proporcje$f, summary_calosc_proporcje$w,
+        summary_calosc_proporcje$n, summary_calosc_proporcje$e,
+        summary_calosc_proporcje$h, summary_calosc_proporcje$g,
+        summary_calosc_proporcje$r)
 # Liczymy średnią liczbę pościgów
 # Ilość obserwacji
 summary_calosc$n_observation <- summarise(calosc_split_zdarzenia, n_observ = n())$n_observ 
@@ -186,6 +210,16 @@ summary_calosc$sredni_shannon <- summarise(calosc_split_zdarzenia,
 
 
 ## OGÓLNA AKTYWNOŚĆ
+
+hist_act_wiecz <- ggplot(calosc[calosc$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
+hist_act_wiecz + geom_histogram(binwidth = 5) + facet_grid(Season ~ Phase) +
+    theme_wesolowski()
+
+hist_act_rano <- ggplot(calosc[calosc$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
+hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ Phase) + 
+scale_x_continuous(limits = c(0, 150)) + theme_wesolowski()
+
+
 akt_gg <- ggplot(summary_calosc, aes(y = n_observation, x = Part_night))
 akt_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski()
 
