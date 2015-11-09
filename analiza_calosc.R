@@ -1,84 +1,10 @@
 ### GACKI ANALIZA CAŁOŚĆ
 
+source("wczytywanie_danych.R")
+## Wybór godzin pomiędzy 20:00 a 21:00 
 
-
-# WCZYTYWANIE FUNKCJI i BIBLIOTEK
-
-
-source("functions/observation_split.R")
-source("functions/count_instances.R")
-source("functions/u_remove.R")
-source("functions/bs_remove.R")
-source("functions/get_sun.R")
-source("functions/wesolowski_plot.R")
-
-library(dplyr)
-library(lubridate)
-library(ggplot2)
-library(lattice)
-library(tidyr)
-
-
-# Wczytywanie dancyh o słońcu
-
-sun <- get_sun("input/wschody_zachody_2012.csv")
-sun <- tbl_df(sun)
-
-
-# WCZYTUJEMY OBIE TABELE
-
-jablow <- read.csv2("input/jablow_calosc.csv", as.is = TRUE)
-krajanow <- read.csv2("input/krajanow_calosc.csv", as.is = TRUE)
-
-jablow <- tbl_df(jablow)
-krajanow <- tbl_df(krajanow)
-
-calosc <- bind_rows(krajanow, jablow)
-
-
-rm(jablow)
-rm(krajanow)
-
-
-## DOdawanie zmiennej "kolonia"
-
-calosc$Season <- toupper(calosc$Season)
-
-calosc<- separate(calosc,Season, c("kolonia", "Season"), "_")
-calosc$Season[calosc$Season == "1"] <- "I" 
-calosc$Season[calosc$Season == "2"] <- "II" 
-calosc$Season[calosc$Season == "3"] <- "III" 
-
-
-
-## Poprawiamy kanały 
-calosc$Channel[calosc$Channel == "Ch1"] <- "ch1"
-calosc$Channel[calosc$Channel == "KAM2"] <- "ch2"
-calosc$Channel[calosc$Channel == "KAM4"] <- "ch1"
-
-## Zmieniam daty na format R - patrz lubridate
-calosc$Date_time <- dmy_hms(paste(calosc$Data, calosc$Time))
-calosc$Date_time <- calosc$Date_time -  minutes(60)
-
-# Ustalamy porę dnia (wieczór/rano)
-calosc$godzina <- hour(calosc$Date_time)
-calosc$Part_night <- factor(ifelse(calosc$godzina>=12, "wieczor", "rano"))
-calosc$Part_night <- relevel(calosc$Part_night, "wieczor")
-
-# Czyścimy tabelę ze zbędnych kolumn 
-calosc <- select(calosc, kolonia, Season, Phase, Date_time,Channel, Night, Part_night,
-                 Event_V, Toys, Quantity)
-
-# Dodajemy dane o słońcu 
-calosc$date <- as.Date(calosc$Date_time)
-calosc <- left_join(calosc, sun, by ="date" )
-
-calosc <- mutate(calosc,after_dusk = Date_time - sunset,
-                 till_dawn = sunrise - Date_time)
-
-
-
-
+calosc <- filter(calosc, !(kolonia == "JABLOW" & Season == "III"  & 
+                                       Part_night == "wieczor" & hour(Date_time) %in% c(18,20)))
 
 
 ## Usuwamy dane zawierające oberwacje niepełne (u) oraz
@@ -120,7 +46,7 @@ calosc_zdarzenia <- mutate(calosc_zdarzenia,
 # złożone od obserwacji 2 niezależnych osobników
 #sub <- filter(calosc_zdarzenia, Quantity>1)
 #sub_plot <- ggplot(calosc_zdarzenia, aes(y = srednia_ilosc_elementow, x = czy_pogon))
-#sub_plot + geom_boxplot() + facet_grid(.~Season)
+#sub_plot + geom_boxplot() + facet_grid(.~Part_night)
 
 
 ### TNIEMY TABELĘ - JEDEN NIETOPERZ NA JEDNĄ OBSERWACJĘ
@@ -157,7 +83,7 @@ shan_plot + geom_boxplot(aes(x = Channel)) + facet_grid(Phase~Season)
 
 # Grupujemy po sezonach, nocach i porze dnia, żeby potem policzyć sumy dla konkretnych
 # zdarzeń
-calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season, Night, Part_night)
+calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season, Night, Part_night, Channel)
 
 ### Liczymy liczbę pościgów i liczbę zdarzeń
 
@@ -211,12 +137,15 @@ summary_calosc$sredni_shannon <- summarise(calosc_split_zdarzenia,
 
 ## OGÓLNA AKTYWNOŚĆ
 
+box_act_channel <- ggplot(summary_calosc, aes( y = n_observation, x = Channel))
+box_act_channel + geom_boxplot() + facet_grid(.~kolonia)
+
 hist_act_wiecz <- ggplot(calosc[calosc$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
-hist_act_wiecz + geom_histogram(binwidth = 5) + facet_grid(Season ~ Phase) +
+hist_act_wiecz + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) +
     theme_wesolowski()
 
 hist_act_rano <- ggplot(calosc[calosc$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
-hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ Phase) + 
+hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) + 
 scale_x_continuous(limits = c(0, 150)) + theme_wesolowski()
 
 
@@ -236,8 +165,68 @@ grupy <- ggplot(sub,
 grupy + geom_bar() + facet_grid(.~Season)
 
 
+
+#Złożoność zachowań
+
+calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season,)
+
+### Liczymy liczbę pościgów i liczbę zdarzeń
+
+summary_calosc_ks <- summarise_each(calosc_split_zdarzenia,
+                                 funs(
+                                     sum(., na.rm = T)
+                                 ), vars = -c(1:15))
+
+
+
+## Przeliczanie na proporcje
+
+summary_calosc_proporcje_ks <- mutate(summary_calosc_ks[,c(3,4,5, 20, 21)],
+                                   a = a/ilosc_elementow,
+                                   v = v/ilosc_elementow,
+                                   c = c/ilosc_elementow, 
+                                   l = l/ilosc_elementow,
+                                   t = t/ilosc_elementow, 
+                                   o = o/ilosc_elementow, 
+                                   d = d/ilosc_elementow,
+                                   f = f/ilosc_elementow,
+                                   w = w/ilosc_elementow,
+                                   n = n/ilosc_elementow,
+                                   e = e/ilosc_elementow,
+                                   h = h/ilosc_elementow,
+                                   g = g/ilosc_elementow,
+                                   r = r/ilosc_elementow
+)
+
+summary_melt <- melt(summary_calosc_ks[,1:20], id.vars = c("kolonia", "Season"))
+
+
+category <- vector("character")
+for (i in as.numeric(summary_melt$variable)){
+    if(i %in% 1:3) category <- append(category, "AVC")
+    if(i %in% 4:6) category <- append(category,"LTO")
+    if(i %in% 7:9) category <- append(category,"DFW")
+    if(i %in% 10:12) category <- append(category, "NEH")
+    if(i %in% 13:14) category <- append(category,"GR")
+    if(i %in% 15:18) category <- append(category,"IKQP")
+}
+
+category<- factor(category, level = c("AVC", "LTO", "DFW", "NEH", "GR", "IKQP"))
+
+summary_melt$category <- category
+colourCount = 18
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+zdarzenia_sklad <- ggplot(summary_melt, aes(x = Season, y = value, fill = variable))
+zdarzenia_sklad + geom_bar(position = "fill", stat="identity") + facet_grid(category ~ kolonia)+
+    scale_fill_manual(values = getPalette(colourCount)) + theme_wesolowski()
+
+
+
 ### BRUDY
  
 calosc %>% mutate(p = p) %>% filter(p == 1, Quantity == 1) -> dziwy
 
 which(calosc$Quantity == 1 & p ==1)
+calosc %>% filter(Season == "III", Phase == "C") -> dziwy
+View(dziwy)
