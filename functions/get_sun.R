@@ -11,7 +11,7 @@ get_sun <- function(sun_file){
     
     #### Wczytuje dane o słońcu
     sun_df <- read.csv2(sun_file, header = TRUE, 
-                        colClasses = "character")[,1:4]
+                        colClasses = "character", encoding = "latin1")[,1:4]
     # Łączę komórki dat ( dzień z miesiącem i rokiem)
     date_char <- paste(substr(sun_df$Date, 1,2), sun_df$Month_year)
     

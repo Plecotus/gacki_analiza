@@ -14,9 +14,9 @@ bs_remove <- function(data, slash = F){
 
   ## Usuwamy zdarzenia typu "u" z początków i końców kodów
   
-  kody <- gsub("^([bs]..)+","", kody)
-  kody <- gsub("([bs]..)+$", "", kody)
-  kody <- gsub("([bs].)+$", "", kody)
+  kody <- gsub("([bs])","", kody)
+  #kody <- gsub("([bs])+$", "", kody)
+  #kody <- gsub("([bs])+$", "", kody)
   
   
   if(slash) {
