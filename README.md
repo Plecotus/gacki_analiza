@@ -1,8 +1,66 @@
 # Gacki - Jabłów - analiza
 
+
 ## Do zrobienia:
 
+<<<<<<< HEAD
+
+
+
+### To było do sprawdzenia, ale i tak będziemy to robić od nowa - nie zmergowałeś wersji z 24.07
+### 24.07.2014 Sprawdź proszę Zieleń, czy dobrze rozpisałam ciało testu satystycznego dla:
+
+* liczba zdarzeń a rodzaj przelotu, pora dnia i sezon (332 linia)
+* liczba elementów w sekwencji a rodzaj przelotu (262)
+* złozoność sekwencji a pora dnia (230)
+
+
+## Co mamy
+
+29.10.2015
+
+* poprawienie wczytywania danych  -  strefy czasowe.
+
+24.07.2015
+
+* Dodałam linie testow statystycznych, sprawdź proszę Zieleń, czy dobrze!
+
+
+* powrównianie ogólnej aktywności (z)
+
+* porównanie średnich ilości pościgów pomiędzy sezonami 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały) teraz jest /2
+* porównanie średnich ilości pościgów pomiędzy porami dnia 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+* porównanie srednich ilości poscigów pomiędzy sezonami i porami dnia 
+(g, n = 84 - 21 dni x 2 pory x 2 kanały)
+
+
+
+
+* porównanie złożoności sekwencji a sezon (s, n = 4123)
+* porównanie złożoności sekwencji a pora dnia
+* porównanie złożoności sekwencji a pora dnia i sezon
+
+* porównianie złożoności sekwencji w przypadku obecności pojedynczego osobnika 
+albo grupy osobników (h, n= 4123, czyli liczba wszystkich zarejestrowanych nietoperzy,
+pojedycze 2483, w grupie 1640)
+
+
+
+* ogólna aktywność z podziałem na noce (o)
+
+
+* porównianie złożoności sekwencji a obecność pogoni/jej braku(f)
+* porównianie złożoności sekwencji a obecność pogoni/jej braku, a obecność grupy
+
+
+
+* porównianie przelotów w grupach dla sezonu i pory dnia (m)
+
+=======
 poprawienie wczytywania danych  -  strefy czasowe.
+>>>>>>> master
 
 
 #Uwagi 
