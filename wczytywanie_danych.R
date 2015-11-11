@@ -79,3 +79,5 @@ calosc <- left_join(calosc, sun, by ="date" )
 
 calosc <- mutate(calosc,after_dusk = Date_time - sunset,
                  till_dawn = sunrise - Date_time)
+
+rm(sun)
