@@ -1,7 +1,17 @@
 ### GACKI ANALIZA CAŁOŚĆ
 
 source("wczytywanie_danych.R")
+
+### ROZBUDOWYWANIE TABELI PODSTAWOWEJ ----
+# Tutaj jedna obserwacja może składać się z sekwencji kilku nietoperzy
+# Każda sekwencja rozdzielona jest poprzez / 
+
+
+
 ## Wybór godzin pomiędzy 20:00 a 21:00 
+## BO w naszym zbiorze danych mamy też dane sprzed 20 (30 min). Chcemy się tego
+## pozbyć, ze zwzględu lepszej porównywalności z wieczorem.
+
 
 calosc <- filter(calosc, !(kolonia == "JABLOW" & Season == "III"  & 
                                        Part_night == "wieczor" & hour(Date_time) %in% c(18,20)))
@@ -11,28 +21,45 @@ calosc <- filter(calosc, !(kolonia == "JABLOW" & Season == "III"  &
 # obserwacje duże i male (b i s), bez podmianki wewnętrzych
 # elementów na "/", kontroluje to parametr slash
 
-calosc <- u_remove(calosc, slash = F)
+## W przypadku "u" usuwamy te elementy, które były niewidoczne,
+# zostawiając resztę sekwencji bez zmian.
+
 calosc <- bs_remove(calosc, slash = F)
-calosc <- filter(calosc, Event_V != "")
+calosc <- u_remove(calosc, slash = F)
+calosc <- filter(calosc, Event_V != "") # jeśli powstały obserwacje bez sekwencji
+
+
 
 ## Liczymy zdarzenia w obrębie każdego kodu
+## Sekwencje przelotu zakodowane są jako ciąg znaków rozdzielonych kropkami
+## W tym momencie liczymy wystąpienia poszczególnych ewolucji w obrębie sekwencji.
 
 characters <-c("a","v","c","l","t","o","d","f","w","n","e", "h", "g","r",
                "i", "k","q","p")
-
 zdarzenia <- count_instances(calosc, characters)
+# Łączymy zdarzenia i podstawową tabelę w całość
 calosc_zdarzenia <- cbind(calosc, zdarzenia)
 
 
 
 # Zamieniamy dane o pogoni na zmienną logiczną
+# Funkcja count_instances policzyła nam liczbę pogoni, a są obserwacje 
+# z większą liczbą pogoni niż 1, a przyda nam się zminenna, czy_pogon wskazująca
+# na takie konkrente obserwacje. Zmienną czy_pogoń dodajemy też do podstawowej
+# tabeli, żeby nie stracić z pola widzenia sekwencji gonionego.
 
 p <- zdarzenia$p
 p[is.na(p)] <-0
-
 calosc_zdarzenia$czy_pogon <- as.logical(p)
+calosc$czy_pogon <- as.logical(p)
 
-# ZLiczamy ilość elementów w sekwencji
+rm(p)
+
+# Zliczamy ilość elementów w sekwencji
+# A ponieważ jeszcze pracujemy na pełnych obserwacjach, a nie na poszczególnych
+# kodach, dzielimy ilosc_elementów przez liczbę osobników w obserwacji uzyskując
+# średnią złożoność.
+
 calosc_zdarzenia$ilosc_elementow <- apply(calosc_zdarzenia[,17:30],1,sum, na.rm = T)
 calosc_zdarzenia <- mutate(calosc_zdarzenia,
                            srednia_ilosc_elementow  = ilosc_elementow/Quantity)
@@ -40,30 +67,39 @@ calosc_zdarzenia <- mutate(calosc_zdarzenia,
 
 
 
-
-
+## TO TAKIE NIE WIEM CO DO KOŃCA ################################
 # Sprawdzamy czy obserwacje z pogoniami są bardziej 
 # złożone od obserwacji 2 niezależnych osobników
-#sub <- filter(calosc_zdarzenia, Quantity>1)
-#sub_plot <- ggplot(calosc_zdarzenia, aes(y = srednia_ilosc_elementow, x = czy_pogon))
-#sub_plot + geom_boxplot() + facet_grid(.~Part_night)
+sub <- filter(calosc_zdarzenia, Quantity>1)
+sub_plot <- ggplot(calosc_zdarzenia, aes(y = srednia_ilosc_elementow, x = czy_pogon))
+sub_plot + geom_boxplot() + facet_grid(.~Part_night)
+##################################################################
 
+### TNIEMY TABELĘ - JEDEN NIETOPERZ NA JEDNĄ OBSERWACJĘ ------------------
 
-### TNIEMY TABELĘ - JEDEN NIETOPERZ NA JEDNĄ OBSERWACJĘ
+# Każda obserwacja zawierająca w kodzie / jest dzielona na dwie osobne obserwacje
+# przy czym zostają zachowane pozostałe sygnatury - kolonia, sezon,  czas, czy_pogon, etc.
 
 calosc_split <- observation_split(calosc)
 
-# LIczymy poszczególne zdarzenia
+# Liczymy poszczególne zdarzenia
+# Ponownie, tym razem dla poszczególnych nietoperzy.
 
 characters <-c("a","v","c","l","t","o","d","f","w","n","e", "h", "g","r",
                "i", "k","q","p")
-
 zdarzenia <- count_instances(calosc_split, characters)
+
+# I łączymy w jedną tabelę
 calosc_split_zdarzenia <- cbind(calosc_split, zdarzenia)
 
-calosc_split_zdarzenia$ilosc_elementow <- apply(calosc_split_zdarzenia[,17:30],
-                                                1,sum, na.rm = T)
+rm(zdarzenia)
+rm(characters)
 
+
+# Liczymy liczbę elementów w sekwencji
+calosc_split_zdarzenia$ilosc_elementow <- apply(calosc_split_zdarzenia[,18:31],
+                                                1,sum, na.rm = T)
+# Liczymy współczynnik shannon'a dla sekwencji
 calosc_split_zdarzenia$shannon <- apply(as.matrix(zdarzenia), 1, function(x){
     suma <- sum(x, na.rm = T)
     prawd <- x/suma
@@ -71,18 +107,31 @@ calosc_split_zdarzenia$shannon <- apply(as.matrix(zdarzenia), 1, function(x){
     s
 })
 
+# Liczymy liczbę zwrotów w sekwencji -  kolejna miara złożoności sekwencji
 
-shan_plot <- ggplot(calosc_split_zdarzenia, aes(x = Part_night, y = shannon))
+l <- calosc_split_zdarzenia$l
+n <- calosc_split_zdarzenia$n
+t <- calosc_split_zdarzenia$t
+d <- calosc_split_zdarzenia$d
+o <- calosc_split_zdarzenia$o
+o[is.na(o)] <- 0
+n[is.na(n)] <- 0
+l[is.na(l)] <- 0
+t[is.na(t)] <- 0
+d[is.na(d)] <- 0
+calosc_split_zdarzenia$n_zakretow <- l*2+ t*1 +n*1 +d*1 + o*4
 
-shan_plot + geom_boxplot(aes(x = Channel)) + facet_grid(Phase~Season)
+c <- calosc_split_zdarzenia$c
+v <- calosc_split_zdarzenia$v
+c[is.na(c)] <- 0
+v[is.na(v)] <- 0
 
+calosc_split_zdarzenia$n_zakretow_vc <- l*2+ t*1 +n*1 +d*1 + o*4 + c*.5 +v *.5
 
-shan_pogon <- ggplot(calosc_zdarzenia, aes(x = czy_pogon, y = srednia_ilosc_elementow))
-shan_pogon + geom_boxplot() + facet_grid(.~kolonia)  
-kruskal.test(calosc_zdarzenia$srednia_ilosc_elementow, calosc_zdarzenia$czy_pogon)
-wilcox.test(calosc_zdarzenia$srednia_ilosc_elementow ~ calosc_zdarzenia$czy_pogon)
+rm(l); rm(n); rm(o); rm(t); rm(d); rm(c); rm(v)
 
-table(calosc_zdarzenia$czy_pogon)
+### LICZENIE PODSUMOWAŃ DLA POSZCZEGÓLNYCH ETAPÓW
+
 # Grupujemy po sezonach, nocach i porze dnia, żeby potem policzyć sumy dla konkretnych
 # zdarzeń
 calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season, Phase,
@@ -93,7 +142,7 @@ calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season, Phas
 summary_calosc <- summarise_each(calosc_split_zdarzenia,
                                  funs(
                                      sum(., na.rm = T)
-                                 ), vars = -c(1:15))
+                                 ), vars = -c(1:17))
 
 
 
@@ -124,6 +173,8 @@ boxplot(summary_calosc_proporcje$a, summary_calosc_proporcje$v,
         summary_calosc_proporcje$n, summary_calosc_proporcje$e,
         summary_calosc_proporcje$h, summary_calosc_proporcje$g,
         summary_calosc_proporcje$r)
+
+
 # Liczymy średnią liczbę pościgów
 # Ilość obserwacji
 summary_calosc$n_observation <- summarise(calosc_split_zdarzenia, n_observ = n())$n_observ 
@@ -145,7 +196,7 @@ box_act_channel + geom_boxplot() + facet_grid(Season~kolonia)
 
 # Histogram aktywności wieczorem
 
-hist_act_wiecz <- ggplot(calosc[calosc$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
+hist_act_wiecz <- ggplot(calosc_split_zdarzenia[calosc_split_zdarzenia$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
 
 jpeg("images/aktywnosc_wieczorna_hit.jpeg", 1200, 800)
 hist_act_wiecz + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) +
@@ -155,33 +206,87 @@ dev.off()
 
 # Histogram aktywności rano
  
-
 hist_act_rano <- ggplot(calosc[calosc$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
+
 jpeg("images/aktywnosc_rano_hist.jpg", 1200, 800)
 hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) + 
 scale_x_continuous(limits = c(0, 150)) + 
   theme_wesolowski() + xlab("Minuty do wschodu słońca") + ylab("Liczba obserwacji")
 dev.off()
 
-akt_gg <- ggplot(summary_calosc, aes(y = n_observation, x = Part_night))
-akt_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski()
+#######!!!!!!!!!! TUTAJ TRZEBA SIĘ ZASTANOWIĆ CZY TAK TO PRZEKAZYWAĆ? CZY NIE UŚREDNIĆ
+# KANAŁÓW
+
+summary_calosc <- group_by(summary_calosc, kolonia, Season, Phase, Night, Part_night)
+summary_calosc2 <- summarise_each(summary_calosc,
+                                  funs(
+                                    mean(., na.rm = T)
+                                  ), vars = -c(1:7))
+  
+  
+
+akt_gg <- ggplot(summary_calosc2, aes(y = n_observation, x = Part_night))
+
+jpeg("images/aktywnosc_boxploty.jpg", 1200, 800)
+akt_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski() +
+  xlab("Pora nocy") + ylab(" Liczba obserwacji")
+dev.off()
 
 
-## Średnia ilość pogoni
-pogon_gg <- ggplot(summary_calosc, aes(y = mean_p, x = Part_night))
-pogon_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski()
+
+## Proporcje sekwencji z pogonią do wszystkich sekwencji - UWAGA JAK WYŻEJ
+
+pogon_gg <- ggplot(summary_calosc2, aes(y = mean_p, x = Part_night))
+
+jpeg("images/pogonie_boxploty.jpeg", 1200, 800)
+pogon_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski()+
+  xlab("Pora nocy") + ylab ("Proporcja sekwencji z pogoniami")
+dev.off()
+
+
 
 ## Przeloty_grupowe
 sub <- filter(calosc_zdarzenia, Quantity >1)
 grupy <- ggplot(sub,
-                aes(x = as.factor(Quantity),
-                    fill=czy_pogon ))
-grupy + geom_bar() + facet_grid(.~Season)
+                aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń"))))
+
+jpeg("pogon_brakpogoni_2i_wiecej.jpeg", 1200, 800)
+grupy + geom_bar() + theme_wesolowski() + xlab("Obecność pogoni") +
+  ylab("Liczba obserwacji")
+dev.off()
+
+
+table((sub$czy_pogon))
+
+
+###
 
 
 
+shan_plot <- ggplot(calosc_split_zdarzenia, aes(x = Part_night, y = shannon))
+
+jpeg("images/shanon_kolonia_sezon_box.jpeg", 1200, 800)
+shan_plot + geom_boxplot() + facet_grid(kolonia~Season) +
+  ylab("H'") + xlab("Pora nocy") + theme_wesolowski()
+dev.off()
+
+elements_pogon <- ggplot(calosc_split_zdarzenia, aes(x = czy_pogon, y = ilosc_elementow))
+elements_pogon + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski() 
++ ylim(c(0, 15)) + ylab
+
+shan_pogon <- ggplot(calosc_split_zdarzenia, aes(x = czy_pogon, y = shannon))
+shan_pogon + geom_boxplot() + facet_grid(Part_night~kolonia)
+
+wilcox.test(calosc_split_zdarzenia$shannon ~ calosc_split_zdarzenia$czy_pogon)
+
+zwroty_pogon <- ggplot(calosc_split_zdarzenia, aes(x = czy_pogon, y = n_zakretow))
+zwroty_pogon  + geom_boxplot() + facet_grid(Part_night ~ kolonia) + ylim(c(0, 5))
+
+kruskal.test(calosc_zdarzenia$srednia_ilosc_elementow, calosc_zdarzenia$czy_pogon)
+wilcox.test(calosc_zdarzenia$srednia_ilosc_elementow ~ calosc_zdarzenia$czy_pogon)
+
+table(calosc_zdarzenia$czy_pogon)
 #Złożoność zachowań
-
 calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season)
 
 ### Liczymy liczbę pościgów i liczbę zdarzeń
@@ -189,7 +294,7 @@ calosc_split_zdarzenia <- group_by(calosc_split_zdarzenia, kolonia, Season)
 summary_calosc_ks <- summarise_each(calosc_split_zdarzenia,
                                  funs(
                                      sum(., na.rm = T)
-                                 ), vars = -c(1:16))
+                                 ), vars = -c(1:17))
 
 
 
