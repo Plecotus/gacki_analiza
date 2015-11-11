@@ -206,7 +206,7 @@ dev.off()
 
 # Histogram aktywności rano
  
-hist_act_rano <- ggplot(calosc[calosc$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
+hist_act_rano <- ggplot(calosc_split_zdarzenia[calosc_split_zdarzenia$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
 
 jpeg("images/aktywnosc_rano_hist.jpg", 1200, 800)
 hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) + 
