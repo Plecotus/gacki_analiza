@@ -250,7 +250,7 @@ sub <- filter(calosc_zdarzenia, Quantity >1)
 grupy <- ggplot(sub,
                 aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń"))))
 
-jpeg("pogon_brakpogoni_2i_wiecej.jpeg", 1200, 800)
+jpeg("images/pogon_brakpogoni_2i_wiecej.jpeg", 1200, 800)
 grupy + geom_bar() + theme_wesolowski() + xlab("Obecność pogoni") +
   ylab("Liczba obserwacji")
 dev.off()
@@ -382,23 +382,27 @@ dev.off()
 zabawki_j <- ggplot(filter(calosc_split_zdarzenia, kolonia == "JABLOW"), aes(x = Phase, y = shannon))
 zabawki_j + geom_boxplot() + facet_grid(Season~Toys_ch) + ylim(c(0,2))
 
+zabawki_j + geom_bar(aes(x = czy_pogon), stat = "identity")+ facet_grid(Season~Toys_ch)
 zabawki_k <- ggplot(filter(calosc_split_zdarzenia, kolonia == "KRAJANOW"), aes(x = Phase, y = shannon))
-zabawki_k + geom_boxplot() + facet_grid(Season~Toys_ch) + ylim(c(0,10))
+zabawki_k + geom_boxplot() + facet_grid(Season~Toys_ch) + ylim(c(0,2))
 
+
+zabawki_j_a <- ggplot(filter(summary_calosc, kolonia == "JABLOW", Season == "III"), aes(x = Phase, y = n_observation))
+zabawki_j_a + geom_boxplot() + facet_grid(Part_night~Toys_ch)  + geom_jitter()
 # Aktywność z zabawkami
 
 
 
 zabawki_akt_j <- ggplot(filter(summary_calosc, kolonia == "JABLOW"), aes(x = Phase, y = n_observation))
 jpeg("images/aktywnosc_zabawki_jablow.jpg", 1200, 800)
-zabawki_akt_j + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free")
+zabawki_akt_j + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free") +theme_wesolowski()
 dev.off()
 
 
 zabawki_akt_k <- ggplot(filter(summary_calosc, kolonia == "KRAJANOW"), aes(x = Phase, y = n_observation))
 
 jpeg("images/aktywnosc_zabawki_krajanow.jpg", 1200, 800)
-zabawki_akt_k + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free") + geom_jitter()
+zabawki_akt_k + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free") + theme_wesolowski()
 dev.off()
 
 
