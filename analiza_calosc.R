@@ -1,5 +1,5 @@
 ### GACKI ANALIZA CAŁOŚĆ
-
+#setwd("~/R/gacki_analiza")
 source("wczytywanie_danych.R")
 
 ### ROZBUDOWYWANIE TABELI PODSTAWOWEJ ----
@@ -192,14 +192,12 @@ summary_calosc$sredni_shannon <- summarise(calosc_split_zdarzenia,
 
 ## OGÓLNA AKTYWNOŚĆ
 
-box_act_channel <- ggplot(summary_calosc, aes( y = n_observation, x = Part_night))
-box_act_channel + geom_boxplot() + facet_grid(Season~kolonia, scale = "free")
 
 # Histogram aktywności wieczorem
 
 hist_act_wiecz <- ggplot(calosc_split_zdarzenia[calosc_split_zdarzenia$Part_night == "wieczor",], aes(x = as.numeric(after_dusk)/60))
 
-tiff("images/aktywnosc_wieczorna_hit.tiff", 1200, 800)
+jpeg("images/aktywnosc_wieczorna_hit.jpeg", 1200, 800, quality = 100)
 hist_act_wiecz + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) +
     theme_wesolowski() + xlab("Minuty po zachodzie słońca") + ylab("Liczba obserwacji")
 dev.off()
@@ -209,7 +207,7 @@ dev.off()
  
 hist_act_rano <- ggplot(calosc_split_zdarzenia[calosc_split_zdarzenia$Part_night == "rano",], aes(x = as.numeric(till_dawn)))
 
-tiff("images/aktywnosc_rano_hist.tiff", 1200, 800)
+jpeg("images/aktywnosc_rano_hist.jpeg", 1200, 800, quality = 100)
 hist_act_rano + geom_histogram(binwidth = 5) + facet_grid(Season ~ kolonia) + 
 scale_x_continuous(limits = c(0, 150)) + 
   theme_wesolowski() + xlab("Minuty do wschodu słońca") + ylab("Liczba obserwacji")
@@ -224,13 +222,17 @@ summary_calosc2 <- summarise_each(summary_calosc,
                                     mean(., na.rm = T)
                                   ), vars = -c(1:7))
   
-  
+
+box_act_channel <- ggplot(summary_calosc, aes( y = n_observation, x = Channel))
+box_act_channel + geom_boxplot() + facet_grid(Season~kolonia, scale = "free") 
+
+wilcox.test(n_observation~Channel, summary_calosc)
 ## AKTYWNOŚĆ,BOXPLOTY
 akt_gg <- ggplot(summary_calosc2, aes(y = n_observation, x = Part_night))
 
+wilcox.test(n_observation~Part_night, summary_calosc2)
 
-
-tiff("images/aktywnosc_boxploty.tiff", 1200, 800)
+jpeg("images/aktywnosc_boxploty.jpeg", 1200, 800, quality = 100)
 akt_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski() + 
       xlab("Pora nocy") + ylab(" Liczba obserwacji")
 dev.off()
@@ -241,7 +243,7 @@ dev.off()
 
 pogon_gg <- ggplot(summary_calosc2, aes(y = mean_p, x = Part_night))
 
-tiff("images/pogonie_boxploty.tiff", 1200, 800)
+jpeg("images/pogonie_boxploty.jpeg", 1200, 800, quality = 100)
 pogon_gg + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski()+
   xlab("Pora nocy") + ylab ("Proporcja sekwencji z pogoniami")
 dev.off()
@@ -253,7 +255,7 @@ sub <- filter(calosc_zdarzenia, Quantity >1)
 grupy <- ggplot(sub,
                 aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń"))))
 
-tiff("images/pogon_brakpogoni_2i_wiecej.tiff", 1200, 800)
+jpeg("images/pogon_brakpogoni_2i_wiecej.jpeg", 1200, 800, quality = 100)
 grupy + geom_bar() + theme_wesolowski() + xlab("Obecność pogoni") +
   ylab("Liczba obserwacji")
 dev.off()
@@ -268,7 +270,7 @@ table((sub$czy_pogon))
 
 shan_plot <- ggplot(calosc_split_zdarzenia, aes(x = Part_night, y = shannon))
 
-tiff("images/shanon_kolonia_sezon_box.tiff", 1200, 800)
+jpeg("images/shanon_kolonia_sezon_box.jpeg", 1200, 800, quality = 100)
 shan_plot + geom_boxplot() + facet_grid(kolonia~Season) +
   ylab("H'") + xlab("Pora nocy") + theme_wesolowski()
 dev.off()
@@ -278,7 +280,7 @@ elements_pogon <- ggplot(
     x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń")),
     y = ilosc_elementow))
 
-tiff("images/liczba_elemetow_przy_pogoni.tiff", 1200, 800)
+jpeg("images/liczba_elemetow_przy_pogoni.jpeg", 1200, 800, quality = 100)
 elements_pogon + geom_boxplot() + facet_grid(kolonia~Season) + theme_wesolowski() + 
   ylim(c(0, 5)) + ylab("Liczba elementów w sekwencji") + xlab("Obecność pogoni")
 dev.off()
@@ -290,7 +292,7 @@ shan_pogon <- ggplot(
   aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń")),
       y = shannon))
 
-tiff("images/shannon_przy_pogoni.tiff", 1200, 800)
+jpeg("images/shannon_przy_pogoni.jpeg", 1200, 800, quality = 100)
 shan_pogon + geom_boxplot() + theme_wesolowski() + xlab("Obecność pogoni") + 
   facet_grid(kolonia~Season) + ylab("H'")
 dev.off()
@@ -357,14 +359,14 @@ getPalette = colorRampPalette(brewer.pal(9, "Set1"))
 
 zdarzenia_sklad <- ggplot(summary_melt, aes(x = Season, y = value, fill = variable))
 
-tiff("images/barplot_elementy.tiff", 1200, 800)
+jpeg("images/barplot_elementy.jpeg", 1200, 800, quality = 100)
 zdarzenia_sklad + geom_bar(position = "stack", stat="identity") +
   facet_grid(category ~ kolonia,  scales = "free")+
     scale_fill_manual(values = getPalette(colourCount)) + theme_wesolowski()+
   xlab("Faza sezonu") + ylab("Liczba zdarzeń")
 dev.off()
 
-tiff("images/barplot_elementy_fill.tiff", 1200, 800)
+jpeg("images/barplot_elementy_fill.jpeg", 1200, 800, quality = 100)
 zdarzenia_sklad + geom_bar(position = "fill", stat="identity") +
   facet_grid(category ~ kolonia,  scales = "free")+
   scale_fill_manual(values = getPalette(colourCount)) + theme_wesolowski()+
@@ -375,7 +377,7 @@ dev.off()
 
 zdarzenia_sklad_grupy <- ggplot(summary_melt, aes(x = category, y = value))
 
-tiff("images/kategorie_kolonie.tiff", 1300, 800)
+jpeg("images/kategorie_kolonie.jpeg", 1300, 800, quality = 100)
 zdarzenia_sklad_grupy + geom_bar(stat = "identity", aes(fill = variable))+
   scale_fill_manual(values = getPalette(colourCount)) + theme_wesolowski() +
   facet_grid(.~kolonia) + xlab("Kategoria ruchu") + ylab("Liczba zdarzeń")
@@ -401,7 +403,7 @@ summary_calosc$Toys_ch <-factor(summary_calosc$Toys_ch, levels = c("FALSE", "TRU
                                                                                  "Kanał z zabawkami"))
 
 zabawki_akt_j <- ggplot(filter(summary_calosc, kolonia == "JABLOW"), aes(x = Phase, y = n_observation))
-tiff("images/aktywnosc_zabawki_jablow.tiff", 1200, 800)
+jpeg("images/aktywnosc_zabawki_jablow.jpeg", 1200, 800, quality = 100)
 zabawki_akt_j + geom_boxplot() +
   facet_grid(Season~Toys_ch, scale = "free") + theme_wesolowski()+
   xlab("Etap obserwacji") + ylab("Liczba obserwacji")
@@ -413,23 +415,27 @@ zabawki_akt_k + geom_boxplot(aes(x = Season)) + facet_grid(.~Toys_ch, scale = "f
 
 zabawki_akt_k <- ggplot(filter(summary_calosc, kolonia == "KRAJANOW"), aes(x = Phase, y = n_observation))
 
-tiff("images/aktywnosc_zabawki_krajanow.tiff", 1200, 800)
+jpeg("images/aktywnosc_zabawki_krajanow.jpeg", 1200, 800, quality = 100)
 zabawki_akt_k + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free") + theme_wesolowski()+
   xlab("Etap obserwacji") + ylab("Liczba obserwacji")
 dev.off()
 
 
+### Statystyka
+
+#  CZY KANAŁY RÓŻNIĄ SIE MIĘDZY SOBĄ
+dane_melt <- select(summary_calosc,kolonia, Season, Phase, Night, Part_night, Channel, n_observation)
+names(dane_melt)[6:7] <- c("variable", "value")
+dane <- dcast(dane_melt, kolonia+Season+Phase+Night +Part_night~variable)
+
+cor.test(j$ch1, j$ch2, method = "spearman")
+k <- filter(dane, kolonia == "KRAJANOW")
+j <- filter(dane, kolonia == "JABLOW")
 
 
 
-Faza_a <- filter(calosc_split_zdarzenia, Phase == "A")
-Faza_bc <- filter(calosc_split_zdarzenia, Phase != "A")
 
-gg_faza_a <- ggplot(Faza_a, aes(x  = Channel, y= ilosc_elementow))
-gg_faza_a + geom_boxplot() + facet_grid(Season~kolonia) + ylim(c(0,15))
 
-gg_faza_bc <- ggplot(Faza_bc, aes( x = as.logical(Toys), y = ilosc_elementow))
-gg_faza_bc + geom_boxplot() + facet_grid(Season ~ kolonia) + ylim(c(0,15))
 
 
 ### BRUDY
