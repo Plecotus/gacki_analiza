@@ -16,7 +16,10 @@ source("wczytywanie_danych.R")
 calosc <- filter(calosc, !(kolonia == "JABLOW" & Season == "III"  & 
                                        Part_night == "wieczor" & hour(Date_time) %in% c(18,20)))
 
-
+calosc$Season <- factor(calosc$Season, levels = c("I","II", "III"),
+                        labels = c("MAJ", "LIPIEC", "SIERPIEŃ/WRZESIEŃ"))
+calosc$kolonia <- factor(calosc$kolonia, levels = c("JABLOW", "KRAJANOW"), 
+                         labels = c("JABŁÓW", "KRAJANÓW"))
 ## Usuwamy dane zawierające oberwacje niepełne (u) oraz
 # obserwacje duże i male (b i s), bez podmianki wewnętrzych
 # elementów na "/", kontroluje to parametr slash
@@ -226,7 +229,7 @@ summary_calosc2 <- summarise_each(summary_calosc,
 box_act_channel <- ggplot(summary_calosc, aes( y = n_observation, x = Channel))
 box_act_channel + geom_boxplot() + facet_grid(Season~kolonia, scale = "free") 
 
-wilcox.test(n_observation~Channel, summary_calosc)
+
 ## AKTYWNOŚĆ,BOXPLOTY
 akt_gg <- ggplot(summary_calosc2, aes(y = n_observation, x = Part_night))
 
@@ -253,10 +256,10 @@ dev.off()
 ## Przeloty_grupowe
 sub <- filter(calosc_zdarzenia, Quantity >1)
 grupy <- ggplot(sub,
-                aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń"))))
+                aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak pogoni", "Pogoń"))))
 
 jpeg("images/pogon_brakpogoni_2i_wiecej.jpeg", 1200, 800, quality = 100)
-grupy + geom_bar() + theme_wesolowski() + xlab("Obecność pogoni") +
+grupy + geom_bar(width =.5) + theme_wesolowski() + xlab("") +
   ylab("Liczba obserwacji")
 dev.off()
 
@@ -289,12 +292,12 @@ dev.off()
 
 shan_pogon <- ggplot(
   calosc_split_zdarzenia,
-  aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak", "Pogoń")),
+  aes(x = factor(czy_pogon, levels = c("FALSE", "TRUE"), labels = c("Brak pogoni", "Pogoń")),
       y = shannon))
 
 jpeg("images/shannon_przy_pogoni.jpeg", 1200, 800, quality = 100)
-shan_pogon + geom_boxplot() + theme_wesolowski() + xlab("Obecność pogoni") + 
-  facet_grid(kolonia~Season) + ylab("H'")
+shan_pogon + geom_boxplot() + theme_wesolowski() + xlab("") + 
+ ylab("H'")
 dev.off()
 
 wilcox.test(calosc_split_zdarzenia$shannon ~ calosc_split_zdarzenia$czy_pogon)
@@ -387,11 +390,11 @@ dev.off()
 
 # Zachowania z zabawkami
 
-zabawki_j <- ggplot(filter(calosc_split_zdarzenia, kolonia == "JABLOW"), aes(x = Phase, y = shannon))
+zabawki_j <- ggplot(filter(calosc_split_zdarzenia, kolonia == "JABŁÓW"), aes(x = Phase, y = shannon))
 zabawki_j + geom_boxplot() + facet_grid(Season~Toys_ch) + ylim(c(0,2))
 
 zabawki_j + geom_bar(aes(x = czy_pogon), stat = "identity")+ facet_grid(Season~Toys_ch)
-zabawki_k <- ggplot(filter(calosc_split_zdarzenia, kolonia == "KRAJANOW"), aes(x = Phase, y = shannon))
+zabawki_k <- ggplot(filter(calosc_split_zdarzenia, kolonia == "KRAJANÓW"), aes(x = Phase, y = shannon))
 zabawki_k + geom_boxplot() + facet_grid(Season~Toys_ch) + ylim(c(0,2))
 
 
@@ -402,7 +405,7 @@ zabawki_j_a + geom_boxplot() + facet_grid(Part_night~Toys_ch)  + geom_jitter()
 summary_calosc$Toys_ch <-factor(summary_calosc$Toys_ch, levels = c("FALSE", "TRUE"), labels = c("Kanał bez zabawek",
                                                                                  "Kanał z zabawkami"))
 
-zabawki_akt_j <- ggplot(filter(summary_calosc, kolonia == "JABLOW"), aes(x = Phase, y = n_observation))
+zabawki_akt_j <- ggplot(filter(summary_calosc, kolonia == "JABŁÓW"), aes(x = Phase, y = n_observation))
 jpeg("images/aktywnosc_zabawki_jablow.jpeg", 1200, 800, quality = 100)
 zabawki_akt_j + geom_boxplot() +
   facet_grid(Season~Toys_ch, scale = "free") + theme_wesolowski()+
@@ -413,7 +416,7 @@ dev.off()
 ## TO WYKRES Z WCZORAJ A PROPOS ROZMOWYH NA FB
 zabawki_akt_k + geom_boxplot(aes(x = Season)) + facet_grid(.~Toys_ch, scale = "free") + theme_wesolowski()
 
-zabawki_akt_k <- ggplot(filter(summary_calosc, kolonia == "KRAJANOW"), aes(x = Phase, y = n_observation))
+zabawki_akt_k <- ggplot(filter(summary_calosc, kolonia == "KRAJANÓW"), aes(x = Phase, y = n_observation))
 
 jpeg("images/aktywnosc_zabawki_krajanow.jpeg", 1200, 800, quality = 100)
 zabawki_akt_k + geom_boxplot() + facet_grid(Season~Toys_ch, scale = "free") + theme_wesolowski()+
@@ -428,12 +431,36 @@ dane_melt <- select(summary_calosc,kolonia, Season, Phase, Night, Part_night, Ch
 names(dane_melt)[6:7] <- c("variable", "value")
 dane <- dcast(dane_melt, kolonia+Season+Phase+Night +Part_night~variable)
 
+
+d <- filter(dane, kolonia == "KRAJANOW", Season == "III",Phase == "A")
 cor.test(j$ch1, j$ch2, method = "spearman")
 k <- filter(dane, kolonia == "KRAJANOW")
 j <- filter(dane, kolonia == "JABLOW")
 
+wilcox.test(d$"FALSE", d$"TRUE", paired = T)
 
 
+wilcox.test(shannon ~ czy_pogon, calosc_split_zdarzenia)
+
+model <- aov(n_observation~Season*Part_night, summary_calosc2)
+summary(model)
+
+
+dane_melt <- select(summary_calosc,kolonia, Season, Phase, Night, Part_night, Channel, Toys_ch, n_observation)
+names(dane_melt)[7:8] <- c("variable", "value")
+dane <- dcast(dane_melt, kolonia+Season+Phase+Night +Part_night~variable)
+
+
+
+dane_melt <- select(summary_calosc2,kolonia, Season, Phase, Night, Part_night, mean_p)
+names(dane_melt)[5:6] <- c("variable", "value")
+dane <- dcast(dane_melt, kolonia+Season+Phase+Night ~ variable)
+
+wilcox.test(dane$wieczor, dane$rano, pair = T)
+## POGONIE
+
+wilcox.test(mean_p ~ Part_night, data = summary_calosc2)
+table(summary_calosc2$Part_night)
 
 
 
